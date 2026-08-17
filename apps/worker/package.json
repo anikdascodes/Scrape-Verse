@@ -7,7 +7,9 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "db:init": "tsx src/db/init.ts",
-    "ingest:once": "tsx src/cli/ingest-once.ts"
+    "ingest:once": "tsx src/cli/ingest-once.ts",
+    "collectors:register": "tsx src/cli/register-collectors.ts",
+    "inspect": "tsx src/cli/inspect.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.2.0",
@@ -23,3 +25,4 @@
     "typescript": "^5.9.2"
   }
 }
+

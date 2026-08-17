@@ -19,6 +19,8 @@ const GPU_PATTERNS: RegExp[] = [
   /RX\s?90(70|80)(\s?XT)?/i,
   /RX\s?79(00|50)(\s?(XT|GRE))?/i,
   /RX\s?78(00)(\s?XT)?/i,
+  /RX\s?68(00)(\s?XT)?/i,
+  /RX\s?67(00)(\s?XT)?/i,
   /ARC\s?B(580|570)/i,
 ];
 
@@ -67,6 +69,8 @@ export function parsePrice(raw: unknown): number | null {
     cleaned = parts.length === 2 && parts[1].length <= 2
       ? t.replace(',', '.')                       // 255,25 → 255.25
       : t.replace(/,/g, '');                      // 1,299 → 1299
+  } else if (/\.\d{3}$/.test(t)) {
+    cleaned = t.replace(/\./g, '');               // 1.179 (EU thousands) → 1179
   } else {
     cleaned = t;
   }
@@ -78,7 +82,7 @@ export function parsePrice(raw: unknown): number | null {
 export function normalizeStock(raw: unknown): string {
   const s = String(raw ?? '').toLowerCase();
   if (!s) return 'unknown';
-  if (/in.?stock|auf Lager|verfügbar|lieferbar|available|buy now|add to cart|add to bag/.test(s)) return 'in stock';
+  if (/in.?stock|auf Lager|lagernd|verfügbar|lieferbar|available|buy now|add to cart|add to bag/.test(s)) return 'in stock';
   if (/out.?of.?stock|ausverkauft|sold out|unavailable/.test(s)) return 'out of stock';
   if (/pre.?order|vorbestell|coming soon/.test(s)) return 'pre-order';
   return s.length <= 24 ? s : 'unknown';
