@@ -1,0 +1,39 @@
+import 'dotenv/config';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadRootEnv() {
+  // D:\Scrape-Verse\.env holds Bright_Data_API (user-created). Also try repo .env.
+  for (const p of [join(__dirname, '../../../../.env'), join(__dirname, '../../../.env'), '.env']) {
+    if (!existsSync(p)) continue;
+    for (const line of readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      const [, k, v] = m;
+      if (!process.env[k]) process.env[k] = v.replace(/^["']|["']$/g, '');
+    }
+  }
+}
+loadRootEnv();
+
+/** Canonical Bright Data API token. Accepts BRIGHT_DATA_API_KEY or Bright_Data_API. */
+export const API_TOKEN: string =
+  process.env.BRIGHT_DATA_API_KEY ?? process.env.Bright_Data_API ?? '';
+
+export const API_BASE = 'https://api.brightdata.com';
+export const DB_PATH = process.env.HYDRA_DB_PATH ?? './data/hydra.db';
+export const WORKER_PORT = Number(process.env.WORKER_PORT ?? 8787);
+
+export const COLLECTORS: Record<string, string> = {
+  newegg: process.env.COLLECTOR_NEWEGG ?? '',
+  microcenter: process.env.COLLECTOR_MICROCENTER ?? '',
+  mindfactory: process.env.COLLECTOR_MINDFACTORY ?? '',
+  chaos: process.env.COLLECTOR_CHAOS ?? '',
+};
+
+export function assertToken(): void {
+  if (!API_TOKEN) throw new Error('Missing API token: set BRIGHT_DATA_API_KEY (or Bright_Data_API) in .env');
+}

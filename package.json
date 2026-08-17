@@ -1,0 +1,16 @@
+{
+  "name": "hydra",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HYDRA — self-healing GPU price intelligence. Built for WeMakeDevs Into the Scrape-Verse (Aug 17-23, 2026) on Bright Data Scraper Studio.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "worker": "npm run dev -w apps/worker",
+    "web": "npm run dev -w apps/web",
+    "db:init": "npm run db:init -w apps/worker"
+  },
+  "license": "MIT"
+}
