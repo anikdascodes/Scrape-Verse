@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { getDb } from './db/index.js';
 import { buildServer } from './api/server.js';
-import { runAndWatch } from './watchdog/evaluator.js';
+import { runCollector } from './watchdog/controller.js';
 
 const db = getDb();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
@@ -10,7 +10,7 @@ async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
   const cols = db.prepare('SELECT name FROM collectors WHERE kind=? AND active=1').all(kind) as { name: string }[];
   for (const c of cols) {
     try {
-      const { res } = await runAndWatch(c.name, by);
+      const { res } = await runCollector(c.name, by);
       console.log(`[sched] ${c.name}: ${res.status} rows=${res.rowsValid}/${res.rowsIn}`);
     } catch (e) {
       console.error(`[sched] ${c.name} failed:`, e instanceof Error ? e.message : e);

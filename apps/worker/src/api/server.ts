@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import { getDb } from '../db/index.js';
-import { runAndWatch } from '../watchdog/evaluator.js';
+import { runCollector } from '../watchdog/controller.js';
+import { redesignStore } from '../chaos/redesign.js';
 import { bus, type HydraEvent } from '../events/bus.js';
 import { WORKER_PORT } from '../config.js';
 
@@ -67,8 +68,17 @@ export async function buildServer() {
   app.post<{ Params: { name: string } }>('/api/run/:name', async (req, reply) => {
     const col = db.prepare('SELECT id FROM collectors WHERE name=?').get(req.params.name);
     if (!col) return reply.code(404).send({ error: 'unknown collector' });
-    const { res, incidentId } = await runAndWatch(req.params.name, 'manual');
+    const { res, incidentId } = await runCollector(req.params.name, 'manual');
     return { res, incidentId };
+  });
+
+  app.post('/api/chaos/redesign', async (req, reply) => {
+    try {
+      const result = await redesignStore();
+      return result;
+    } catch (e) {
+      return reply.code(500).send({ error: e instanceof Error ? e.message : String(e) });
+    }
   });
 
   // SSE stream of all events (Chaos Lab live feed)

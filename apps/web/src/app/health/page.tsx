@@ -28,15 +28,6 @@ export default async function Health() {
     return <div className="panel p-8 text-center" style={{ color: "var(--muted)" }}>Worker unreachable.</div>;
   }
 
-  const perStore = await Promise.all(
-    collectors.map(async (c) => {
-      const hist = await getJSON<{ store: string; price: number; product_name: string }[]>(
-        `/api/history?model=all&days=1`
-      );
-      return hist;
-    })
-  );
-
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-bold">Collector health</h1>
