@@ -108,3 +108,12 @@ export async function resumeHeal(collectorId: string, approve: boolean, autoSave
     auto_save: autoSave,
   });
 }
+
+export interface Balance { balance: number; credit: number; prepayment: number; pending_costs: number }
+
+/** Account balance (USD). */
+export async function getBalance(): Promise<Balance> {
+  const { status, data } = await req<Balance>('GET', '/balance');
+  if (status !== 200) throw new Error(`balance failed (${status})`);
+  return data;
+}

@@ -3,6 +3,7 @@ import { getDb } from './db/index.js';
 import { buildServer } from './api/server.js';
 import { runCollector } from './watchdog/controller.js';
 import { redesignStore } from './chaos/redesign.js';
+import { recordBalance } from './telemetry/credits.js';
 
 const db = getDb();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
@@ -46,7 +47,10 @@ if (SCHED_ENABLED) {
     cron.schedule(process.env.CHAOS_TEST_CRON ?? '0 */6 * * *', () => void chaosTest());
     console.log('[sched] chaos-test armed (auto break + self-heal)');
   }
-  console.log('[sched] cron armed: real=6h chaos=30m');
+  // credit telemetry every 6h
+  cron.schedule('0 */6 * * *', () => void recordBalance());
+  void recordBalance();
+  console.log('[sched] cron armed: real=6h chaos=30m + credits=6h');
 } else {
   console.log('[sched] disabled (SCHEDULER=off)');
 }

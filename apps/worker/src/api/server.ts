@@ -65,6 +65,15 @@ export async function buildServer() {
     return { incident: inc, events };
   });
 
+  app.get('/api/alerts', async () => {
+    return db.prepare('SELECT id, gpu_model, kind, threshold, triggered_at, note FROM alerts ORDER BY id DESC LIMIT 100').all();
+  });
+
+  app.get('/api/credits', async () => {
+    const history = db.prepare('SELECT balance_usd, checked_at FROM credit_log ORDER BY id DESC LIMIT 60').all();
+    return { history };
+  });
+
   app.post<{ Params: { name: string } }>('/api/run/:name', async (req, reply) => {
     const col = db.prepare('SELECT id FROM collectors WHERE name=?').get(req.params.name);
     if (!col) return reply.code(404).send({ error: 'unknown collector' });

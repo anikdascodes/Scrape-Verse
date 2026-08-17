@@ -3,10 +3,20 @@ import { getJSON, fmtPrice, type OverviewRow, type CollectorRow } from "@/lib/ap
 
 export const dynamic = "force-dynamic";
 
+interface AlertRow {
+  id: number;
+  gpu_model: string;
+  kind: string;
+  threshold: number;
+  triggered_at: string;
+  note: string;
+}
+
 export default async function Overview() {
-  const [overview, collectors] = await Promise.all([
+  const [overview, collectors, alerts] = await Promise.all([
     getJSON<OverviewRow[]>("/api/overview"),
     getJSON<CollectorRow[]>("/api/collectors"),
+    getJSON<AlertRow[]>("/api/alerts"),
   ]);
 
   if (!overview) {
@@ -36,6 +46,33 @@ export default async function Overview() {
           </div>
         ))}
       </section>
+
+      {alerts && alerts.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+            Price &amp; stock alerts
+          </h2>
+          <div className="panel divide-y" style={{ borderColor: "var(--border)" }}>
+            {alerts.map((a) => (
+              <div key={a.id} className="px-4 py-2.5 flex items-center gap-3 text-sm">
+                <span
+                  className="mono text-[11px] px-1.5 py-0.5 rounded"
+                  style={{
+                    background: a.kind === "restock" ? "rgba(63,185,80,0.15)" : "rgba(210,153,34,0.15)",
+                    color: a.kind === "restock" ? "var(--green)" : "var(--amber)",
+                  }}
+                >
+                  {a.kind}
+                </span>
+                <span style={{ color: "var(--text)" }}>{a.note}</span>
+                <span className="ml-auto mono text-xs" style={{ color: "var(--muted)" }}>
+                  {a.triggered_at?.slice(0, 19)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {[
         { title: "USD stores", rows: usd, cur: "USD" },

@@ -1,5 +1,4 @@
 import { getJSON, type CollectorRow } from "@/lib/api";
-import { fmtPrice } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -15,14 +14,21 @@ interface IncidentRow {
   event_count: number;
 }
 
+interface CreditsRow {
+  history: { balance_usd: number; checked_at: string }[];
+}
+
 const incidentColor = (s: string) =>
   s === "closed" ? "var(--green)" : s === "failed" ? "var(--red)" : "var(--amber)";
 
 export default async function Health() {
-  const [collectors, incidents] = await Promise.all([
+  const [collectors, incidents, credits] = await Promise.all([
     getJSON<CollectorRow[]>("/api/collectors"),
     getJSON<IncidentRow[]>("/api/incidents"),
+    getJSON<CreditsRow>("/api/credits"),
   ]);
+
+  const latest = credits?.history?.[0];
 
   if (!collectors) {
     return <div className="panel p-8 text-center" style={{ color: "var(--muted)" }}>Worker unreachable.</div>;
@@ -30,7 +36,20 @@ export default async function Health() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-bold">Collector health</h1>
+      <div className="flex items-end justify-between">
+        <h1 className="text-xl font-bold">Collector health</h1>
+        {latest && (
+          <div className="panel px-4 py-2 text-sm flex items-center gap-3">
+            <span style={{ color: "var(--muted)" }}>Bright Data balance</span>
+            <span className="font-bold" style={{ color: "var(--green)" }}>
+              ${latest.balance_usd.toFixed(2)}
+            </span>
+            <span className="mono text-xs" style={{ color: "var(--muted)" }}>
+              {latest.checked_at?.slice(0, 16)}
+            </span>
+          </div>
+        )}
+      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         {collectors.map((c) => (

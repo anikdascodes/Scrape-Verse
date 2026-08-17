@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS heal_events (
 CREATE TABLE IF NOT EXISTS alerts (
   id            INTEGER PRIMARY KEY,
   gpu_model     TEXT NOT NULL,
-  kind          TEXT NOT NULL CHECK (kind IN ('price_below','drop_pct')),
+  kind          TEXT NOT NULL CHECK (kind IN ('price_below','drop_pct','restock')),
   threshold     REAL NOT NULL,
   triggered_at  TEXT,
   run_id        INTEGER REFERENCES runs(id),
