@@ -101,10 +101,17 @@ function pick(row: RawRow, candidates: string[]): unknown {
 
 export function normalizeRow(row: RawRow, currency: string): NormalizedPrice {
   const name = pick(row, ['product_name', 'name', 'title', 'product_name_title']) as string | null;
+  let price = parsePrice(pick(row, ['price', 'current_price', 'price_usd', 'price_eur', 'cost', 'amount']));
+  // German thousands mangling: source-side float("1.179,00") → 1.179 (exactly 3 decimals).
+  // Real prices never carry 3 decimals — restore by ×1000. EUR only.
+  if (price !== null && currency === 'EUR') {
+    const dec = String(price).split('.')[1];
+    if (dec && dec.length === 3) price = price * 1000;
+  }
   return {
     gpu_model: extractGpuModel(name),
     product_name: name ? String(name).slice(0, 300) : null,
-    price: parsePrice(pick(row, ['price', 'current_price', 'price_usd', 'price_eur', 'cost', 'amount'])),
+    price,
     currency,
     stock_status: normalizeStock(pick(row, ['stock_status', 'availability', 'stock', 'in_stock'])),
     url: (pick(row, ['url', 'product_url', 'link']) as string | null)?.slice(0, 500) ?? null,
