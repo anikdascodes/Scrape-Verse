@@ -6,16 +6,25 @@ const headers = () => ({
   Accept: 'application/json',
 });
 
-async function req<T>(method: string, path: string, body?: unknown): Promise<{ status: number; data: T }> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: headers(),
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const text = await res.text();
-  let data: unknown;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  return { status: res.status, data: data as T };
+async function req<T>(method: string, path: string, body?: unknown, tries = 3): Promise<{ status: number; data: T }> {
+  let lastErr: unknown;
+  for (let i = 1; i <= tries; i++) {
+    try {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers: headers(),
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      const text = await res.text();
+      let data: unknown;
+      try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+      return { status: res.status, data: data as T };
+    } catch (e) {
+      lastErr = e;
+      if (i < tries) await new Promise(r => setTimeout(r, 1000 * 2 ** (i - 1)));
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 /** Trigger a collector run. Returns snapshot id (j_*). */

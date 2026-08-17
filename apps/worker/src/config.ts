@@ -1,7 +1,13 @@
 import 'dotenv/config';
+import { setDefaultResultOrder } from 'node:dns';
+import { Agent, setGlobalDispatcher } from 'undici';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// This host's DNS returns NAT64 IPv6 addresses with broken routing — force IPv4 sockets.
+setDefaultResultOrder('ipv4first');
+setGlobalDispatcher(new Agent({ connect: { family: 4 } }));
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
