@@ -1,0 +1,75 @@
+{
+  "incident": {
+    "id": 1,
+    "collector_id": 5,
+    "run_id": 15,
+    "type": "empty",
+    "severity": "high",
+    "detail": "no valid rows",
+    "status": "closed",
+    "opened_at": "2026-08-17 10:05:45",
+    "closed_at": "2026-08-17 10:07:36"
+  },
+  "events": [
+    {
+      "step": "detected",
+      "status": "ok",
+      "at": "2026-08-17 10:05:45",
+      "detail_json": "{\"type\":\"empty\",\"severity\":\"high\",\"detail\":\"no valid rows\"}"
+    },
+    {
+      "step": "diagnosed",
+      "status": "info",
+      "at": "2026-08-17 10:05:45",
+      "detail_json": "{\"type\":\"empty\",\"detail\":\"no valid rows\"}"
+    },
+    {
+      "step": "refactor_requested",
+      "status": "info",
+      "at": "2026-08-17 10:05:45",
+      "detail_json": "{\"attempt\":1,\"prompt\":\"The scraper returns no rows since the site redesigned. Locate where products are now listed and extract each one. Extract all fields (product_name, price, stock_status, url). Keep the output schema exactly as before.\"}"
+    },
+    {
+      "step": "polling",
+      "status": "info",
+      "at": "2026-08-17 10:05:46",
+      "detail_json": "{\"started\":200}"
+    },
+    {
+      "step": "awaiting_approval",
+      "status": "info",
+      "at": "2026-08-17 10:07:21",
+      "detail_json": "{\"hasPreview\":true}"
+    },
+    {
+      "step": "approved",
+      "status": "ok",
+      "at": "2026-08-17 10:07:22",
+      "detail_json": "{\"auto\":true}"
+    },
+    {
+      "step": "resaved",
+      "status": "ok",
+      "at": "2026-08-17 10:07:23",
+      "detail_json": "{}"
+    },
+    {
+      "step": "rerun",
+      "status": "info",
+      "at": "2026-08-17 10:07:23",
+      "detail_json": "{}"
+    },
+    {
+      "step": "verified_ok",
+      "status": "ok",
+      "at": "2026-08-17 10:07:36",
+      "detail_json": "{\"rows\":20,\"nullRate\":0}"
+    },
+    {
+      "step": "closed",
+      "status": "ok",
+      "at": "2026-08-17 10:07:36",
+      "detail_json": "{}"
+    }
+  ]
+}
