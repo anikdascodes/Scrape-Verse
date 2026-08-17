@@ -2,9 +2,11 @@ import cron from 'node-cron';
 import { getDb } from './db/index.js';
 import { buildServer } from './api/server.js';
 import { runCollector } from './watchdog/controller.js';
+import { redesignStore } from './chaos/redesign.js';
 
 const db = getDb();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
+const CHAOS_TEST = process.env.CHAOS_TEST_ENABLED === 'on';
 
 async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
   const cols = db.prepare('SELECT name FROM collectors WHERE kind=? AND active=1').all(kind) as { name: string }[];
@@ -18,12 +20,32 @@ async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
   }
 }
 
+// Chaos test: redesign the store, then run the collector — which will break and self-heal.
+// Produces a fresh receipt each cycle. Interval configurable via CHAOS_TEST_CRON (default every 6h).
+async function chaosTest() {
+  try {
+    console.log('[chaos-test] redesigning store…');
+    const { version } = await redesignStore();
+    console.log(`[chaos-test] store now v${version}. waiting for Vercel redeploy…`);
+    await new Promise((r) => setTimeout(r, 45_000)); // Vercel redeploy
+    console.log('[chaos-test] triggering chaos collector…');
+    const { res, incidentId } = await runCollector('chaos', 'chaos_test');
+    console.log(`[chaos-test] run=${res.status} rows=${res.rowsValid} incident=${incidentId}`);
+  } catch (e) {
+    console.error('[chaos-test] failed:', e instanceof Error ? e.message : e);
+  }
+}
+
 const app = await buildServer();
 
 if (SCHED_ENABLED) {
-  // real stores every 6h; chaos every 30min (once chaos collector exists)
+  // real stores every 6h; chaos every 30min; optional periodic chaos test
   cron.schedule('0 */6 * * *', () => void runAll('real'));
   cron.schedule('*/30 * * * *', () => void runAll('chaos'));
+  if (CHAOS_TEST) {
+    cron.schedule(process.env.CHAOS_TEST_CRON ?? '0 */6 * * *', () => void chaosTest());
+    console.log('[sched] chaos-test armed (auto break + self-heal)');
+  }
   console.log('[sched] cron armed: real=6h chaos=30m');
 } else {
   console.log('[sched] disabled (SCHEDULER=off)');
