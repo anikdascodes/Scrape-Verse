@@ -1,6 +1,6 @@
 import { getDb } from '../db/index.js';
 import { trigger, waitForDataset } from '../brightdata/client.js';
-import { normalizeRow, type RawRow } from './normalize.js';
+import { normalizeRow, flattenRows, type RawRow } from './normalize.js';
 
 export interface IngestResult {
   runId: number;
@@ -33,7 +33,7 @@ export async function ingestCollector(collectorName: string, triggeredBy = 'sche
     const snapshotId = await trigger(col.c_id, [col.base_url]);
     db.prepare('UPDATE runs SET snapshot_id = ? WHERE id = ?').run(snapshotId, runId);
 
-    const raw = (await waitForDataset(snapshotId)) as RawRow[];
+    const raw = flattenRows(await waitForDataset(snapshotId) as RawRow[]);
     const required = col.required_fields.split(',').map(s => s.trim());
 
     let rowsValid = 0;

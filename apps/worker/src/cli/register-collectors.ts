@@ -5,9 +5,9 @@ import { COLLECTORS } from '../config.js';
 
 const META: Record<string, { kind: 'real' | 'chaos'; url: string; currency: string; schedule: number }> = {
   newegg:      { kind: 'real',  url: 'https://www.newegg.com/GPU-Devices/Category/ID-38',                       currency: 'USD', schedule: 360 },
-  microcenter: { kind: 'real',  url: 'https://www.microcenter.com/category/4294966937/graphics-cards',          currency: 'USD', schedule: 360 },
+  bhphoto:     { kind: 'real',  url: 'https://www.bhphotovideo.com/c/buy/graphics-cards/ci/6568/N/4294956910', currency: 'USD', schedule: 360 },
   mindfactory: { kind: 'real',  url: 'https://www.mindfactory.de/Hardware/Grafikkarten.html',                   currency: 'EUR', schedule: 360 },
-  chaos:       { kind: 'chaos', url: process.env.CHAOS_STORE_URL ?? 'https://TODO.example',                     currency: 'USD', schedule: 30 },
+  chaos:       { kind: 'chaos', url: process.env.CHAOS_STORE_URL ?? 'https://hydra-chaos-store.vercel.app/',   currency: 'USD', schedule: 30 },
 };
 
 const db = getDb();

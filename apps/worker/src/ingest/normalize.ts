@@ -99,14 +99,31 @@ function pick(row: RawRow, candidates: string[]): unknown {
   return null;
 }
 
+/** Flatten rows that nest their items under `products` / `listings` / `items` arrays. */
+export function flattenRows(raw: RawRow[]): RawRow[] {
+  const out: RawRow[] = [];
+  for (const row of raw) {
+    const nested = row.products ?? row.listings ?? row.items ?? row.results;
+    if (Array.isArray(nested) && nested.length > 0) {
+      for (const item of nested) {
+        if (item && typeof item === 'object') out.push(item as RawRow);
+      }
+    } else {
+      out.push(row);
+    }
+  }
+  return out;
+}
+
 export function normalizeRow(row: RawRow, currency: string): NormalizedPrice {
   const name = pick(row, ['product_name', 'name', 'title', 'product_name_title']) as string | null;
   let price = parsePrice(pick(row, ['price', 'current_price', 'price_usd', 'price_eur', 'cost', 'amount']));
   // German thousands mangling: source-side float("1.179,00") → 1.179 (exactly 3 decimals).
   // Real prices never carry 3 decimals — restore by ×1000. EUR only.
-  if (price !== null && currency === 'EUR') {
+  if (price !== null) {
     const dec = String(price).split('.')[1];
-    if (dec && dec.length === 3) price = price * 1000;
+    if (dec && dec.length === 3) price = price * 1000;  // scraper ÷1000 (EUR "1.179,00" → 1.179)
+    else if (dec && dec.length === 4) price = price * 100; // scraper ÷100 (USD "$1,309.99" → 13.0999)
   }
   return {
     gpu_model: extractGpuModel(name),
@@ -117,3 +134,4 @@ export function normalizeRow(row: RawRow, currency: string): NormalizedPrice {
     url: (pick(row, ['url', 'product_url', 'link']) as string | null)?.slice(0, 500) ?? null,
   };
 }
+

@@ -35,7 +35,7 @@ export const WORKER_PORT = Number(process.env.WORKER_PORT ?? 8787);
 
 export const COLLECTORS: Record<string, string> = {
   newegg: process.env.COLLECTOR_NEWEGG ?? '',
-  microcenter: process.env.COLLECTOR_MICROCENTER ?? '',
+  bhphoto: process.env.COLLECTOR_BHPHOTO ?? '',
   mindfactory: process.env.COLLECTOR_MINDFACTORY ?? '',
   chaos: process.env.COLLECTOR_CHAOS ?? '',
 };

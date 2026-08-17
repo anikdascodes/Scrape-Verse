@@ -1,0 +1,102 @@
+[
+  {
+    "id": 10,
+    "collector_id": 1,
+    "status": "failed",
+    "rows_in": 2,
+    "rows_valid": 0,
+    "null_rate": 1,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T09:05:36.292Z"
+  },
+  {
+    "id": 9,
+    "collector_id": 1,
+    "status": "failed",
+    "rows_in": 0,
+    "rows_valid": 0,
+    "null_rate": null,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T09:01:28.732Z"
+  },
+  {
+    "id": 8,
+    "collector_id": 1,
+    "status": "failed",
+    "rows_in": 0,
+    "rows_valid": 0,
+    "null_rate": null,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T09:00:20.270Z"
+  },
+  {
+    "id": 7,
+    "collector_id": 1,
+    "status": "failed",
+    "rows_in": 0,
+    "rows_valid": 0,
+    "null_rate": null,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:59:44.012Z"
+  },
+  {
+    "id": 6,
+    "collector_id": 3,
+    "status": "ok",
+    "rows_in": 2585,
+    "rows_valid": 2585,
+    "null_rate": 0,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:51:15.857Z"
+  },
+  {
+    "id": 5,
+    "collector_id": 3,
+    "status": "ok",
+    "rows_in": 2651,
+    "rows_valid": 2651,
+    "null_rate": 0,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:37:37.460Z"
+  },
+  {
+    "id": 4,
+    "collector_id": 1,
+    "status": "failed",
+    "rows_in": 2,
+    "rows_valid": 0,
+    "null_rate": 1,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:33:13.641Z"
+  },
+  {
+    "id": 3,
+    "collector_id": 3,
+    "status": "ok",
+    "rows_in": 2663,
+    "rows_valid": 2663,
+    "null_rate": 0,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:17:07.949Z"
+  },
+  {
+    "id": 2,
+    "collector_id": 2,
+    "status": "partial",
+    "rows_in": 12,
+    "rows_valid": 10,
+    "null_rate": 0.167,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:14:49.421Z"
+  },
+  {
+    "id": 1,
+    "collector_id": 2,
+    "status": "failed",
+    "rows_in": 0,
+    "rows_valid": 0,
+    "null_rate": null,
+    "triggered_by": "manual",
+    "started_at": "2026-08-17T08:08:23.178Z"
+  }
+]

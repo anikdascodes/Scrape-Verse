@@ -1,0 +1,162 @@
+[
+  {
+    "gpu_model": "RX 9070",
+    "product_name": "ASRock Challenger Radeon RX 9070 16GB GDDR6 PCI Express 5.0 x16 ATX Graphics Card RX9070 CL 16G",
+    "price": 649.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asrock-challenger-rx9070-cl-16g-radeon-rx-9070-16gb-graphics-card-triple-fans/p/N82E16814930138"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "Yeston Atlantis Radeon RX 9070 XT 16G GDDR6 256bit 4nm Desktop computer PC Video Graphics Cards support PCI-Express 5.0 3*DP+1*HDMI-compatible ARGB graphics card",
+    "price": 999,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/yeston-rx9070xt-16gb-video-cards-triple-fans/p/27N-0042-000J6"
+  },
+  {
+    "gpu_model": "RTX 5070",
+    "product_name": "ASUS TUF Gaming GeForce RTX 5070 OC 12GB 192-Bit GDDR7 PCI Express 5.0 DLSS 4.0 Graphics Card TUF-RTX5070-O12G-GAMING",
+    "price": 949.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asus-tuf-gaming-tuf-rtx5070-o12g-gaming-geforce-rtx-5070-12gb-graphics-card-triple-fans/p/N82E16814126758"
+  },
+  {
+    "gpu_model": "RX 7900 XT",
+    "product_name": "ASRock Radeon RX 7900 XTX 24GB GDDR6 PCI Express 4.0 Video Card RX7900XTX 24G - OEM",
+    "price": 929.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asrock-radeon-rx7900xtx-24g-radeon-rx-7900-xtx-24gb-graphics-card-triple-fans/p/N82E16814930084"
+  },
+  {
+    "gpu_model": "ARC B580",
+    "product_name": "ASRock Challenger Arc B580 12GB GDDR6 PCI Express 4.0 x8 ATX Graphics Card B580 CL 12GO",
+    "price": 309.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asrock-challenger-b580-cl-12go-arc-b580-12gb-graphics-card-double-fans/p/N82E16814930131"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "ASRock Monster Hunter Wilds Radeon RX 9070 XT 16GB GDDR6 PCI Express 5.0 x16 Graphics Card RX9070XT MH 16G",
+    "price": 769.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asrock-monster-hunter-wilds-rx9070xt-mh-16g-radeon-rx-9070-xt-16gb-graphics-card-triple-fans/p/N82E16814930146"
+  },
+  {
+    "gpu_model": "RTX 5070",
+    "product_name": "Yeston Sakura Nvidia GeForce RTX 5070 Graphics Card GDDR7 12G 192bit Gaming GPU PCI-Express 5.0 video cards Desktop computer PC video gaming graphics card",
+    "price": 849,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/yeston-sakura-rtx-5070-12g-d7-12gb-graphics-card-triple-fans/p/1FT-007N-000C4"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "ASRock Steel Legend Radeon RX 9070 XT 16GB GDDR6 PCI Express 5.0 x16 ATX Graphics Card RX9070XT SL 16G",
+    "price": 769.99,
+    "currency": "USD",
+    "stock_status": "in stock",
+    "url": "https://www.newegg.com/asrock-steel-legend-rx9070xt-sl-16g-radeon-rx-9070-xt-16gb-graphics-card-triple-fans/p/N82E16814930136"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "16GB XFX Radeon RX 9070 XT Swift Triple Fan Gaming Edition Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 729,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-XFX-Radeon-RX-9070-XT-Swift-Triple-Fan-Gaming-Edition-Aktiv-PCIe-5_1615553.html"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "16GB PowerColor Radeon RX 9070 XT Reaper Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 709,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-PowerColor-Radeon-RX-9070-XT-Reaper-Aktiv-PCIe-5-0-x16--Retail-_1615544.html"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "16GB Sapphire Radeon RX 9070 XT Pulse Aktiv PCIe 5.0 x16 (Lite Retail)",
+    "price": 759,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-Sapphire-Radeon-RX-9070-XT-Pulse-Aktiv-PCIe-5-0-x16--Lite-Retail-_1615571.html"
+  },
+  {
+    "gpu_model": "RTX 5070 TI",
+    "product_name": "16GB MSI GeForce RTX 5070 Ti Gaming Trio OC Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 1.279,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-MSI-GeForce-RTX-5070-Ti-Gaming-Trio-OC-Aktiv-PCIe-5-0-x16--Retail-_1616767.html"
+  },
+  {
+    "gpu_model": "RX 9070 XT",
+    "product_name": "16GB Sapphire Radeon RX 9070 XT Nitro+ Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 859,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-Sapphire-Radeon-RX-9070-XT-Nitro--Aktiv-PCIe-5-0-x16--Retail-_1615574.html"
+  },
+  {
+    "gpu_model": "RTX 5080",
+    "product_name": "16GB Gigabyte GeForce RTX 5080 AERO OC SFF 16G Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 1.588,
+    "currency": "EUR",
+    "stock_status": "bestellt",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-Gigabyte-GeForce-RTX-5080-AERO-OC-SFF-16G-Aktiv-PCIe-5-0-x16--Reta_1609601.html"
+  },
+  {
+    "gpu_model": "ARC B570",
+    "product_name": "10GB ASRock Arc B570 Challenger OC Aktiv PCIe 4.0 x16 (x8) (Retail)",
+    "price": 279,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/10GB-ASRock-Arc-B570-Challenger-OC-Aktiv-PCIe-4-0-x16--x8-Retail-_1604981.html"
+  },
+  {
+    "gpu_model": "ARC B570",
+    "product_name": "10GB Sparkle Arc B570 Guardian OC Aktiv PCIe 4.0 x16 (x8) (Retail)",
+    "price": 318.99,
+    "currency": "EUR",
+    "stock_status": "bestellt",
+    "url": "https://www.mindfactory.de/product_info.php/10GB-Sparkle-Arc-B570-Guardian-OC-Aktiv-PCIe-4-0-x16--x8-Retail-_1609605.html"
+  },
+  {
+    "gpu_model": "ARC B570",
+    "product_name": "10GB Sparkle Arc B570 Guardian Luna OC Aktiv PCIe 4.0 x16 (x8) (Retail)",
+    "price": 277.47,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/10GB-Sparkle-Arc-B570-Guardian-Luna-OC-Aktiv-PCIe-4-0-x16--x8-Retail-_1614813.html"
+  },
+  {
+    "gpu_model": "RTX 5070 TI",
+    "product_name": "16GB MSI GeForce RTX 5070 Ti Gaming Trio OC Aktiv PCIe 5.0 x16 (Retail)",
+    "price": 1.279,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-MSI-GeForce-RTX-5070-Ti-Gaming-Trio-OC-Aktiv-PCIe-5-0-x16--Retail-_1616767.html"
+  },
+  {
+    "gpu_model": "RTX 5070 TI",
+    "product_name": "16GB MSI GeForce RTX 5070 Ti Ventus 3X OC Aktiv PCIe 5.0 x16 1xHDMI 2.1b / 3xDisplayPort 2.1b (Retail)",
+    "price": 1.179,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/16GB-MSI-GeForce-RTX-5070-Ti-Ventus-3X-OC-Aktiv-PCIe-5-0-x16-1xHDMI-2-1_1613074.html"
+  },
+  {
+    "gpu_model": "RTX 5060 TI",
+    "product_name": "8GB INNO3D GeForce RTX 5060 Ti Twin X2 Aktiv PCIe 5.0 x16 (x8) (Retail)",
+    "price": 499,
+    "currency": "EUR",
+    "stock_status": "lagernd",
+    "url": "https://www.mindfactory.de/product_info.php/8GB-INNO3D-GeForce-RTX-5060-Ti-Twin-X2-Aktiv-PCIe-5-0-x16--x8-Retail-_1616619.html"
+  }
+]
