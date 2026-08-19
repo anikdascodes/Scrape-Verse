@@ -47,18 +47,33 @@ chaos-store   Voltmart — a static demo store with 3 layout variants we cycle t
 docs/         architecture, example structured output, self-heal receipts
 ```
 
-## The collectors (proof of create-and-run)
+## Two verticals, one self-healing platform
+
+HYDRA is vertical-agnostic: GPU price intelligence and Indian hotel rate comparison run on the
+same pipeline — same schedule, same watchdog, same heal queue, same receipts.
+
+### The collectors (proof of create-and-run)
 
 Created from the coding agent via `bdata scraper create <url> "<plain-language fields>"`:
 
-| Store | Collector ID | Status |
-|---|---|---|
-| Newegg | `c_mswxuxrc1k9tpskymz` | ✅ creating 12 rows per run |
-| B&H Photo | `c_msx1ffltc5z0dpafz` | ✅ 28 rows/run (healed once: price format) |
-| Mindfactory (DE) | `c_mswy6s6g2737n9yo97` | ✅ 2,500+ rows/run (healed twice: scope + EUR format) |
-| Voltmart (chaos demo store) | `c_msx1fds1k6o3wjymc` | ✅ 20 rows/run — self-heals on every redesign |
+| Vertical | Store / platform | Collector ID | Status |
+|---|---|---|---|
+| gpu | Newegg | `c_mswxuxrc1k9tpskymz` | ✅ 12 rows/run |
+| gpu | B&H Photo | `c_msx1ffltc5z0dpafz` | ✅ 28 rows/run (healed: price format) |
+| gpu | Mindfactory (DE) | `c_mswy6s6g2737n9yo97` | ✅ 2,500+ rows/run (healed: scope + EUR format) |
+| gpu | Voltmart (chaos demo store) | `c_msx1fds1k6o3wjymc` | ✅ 20 rows/run — self-heals on every redesign |
+| travel | Treebo | `c_mt0c9y032or8r8ijpi` | ✅ 6 hotels/run (Goa) |
+| travel | FabHotels | `c_mt0e3tame0ha2e59g` | ✅ healing to list-level extraction (Goa) |
+| travel | Booking.com (reseller bridge) | pre-built data pipe | supplementary source for cross-platform matches |
 
 Same IDs after every heal — the Collector ID never changes across repairs.
+
+### The travel product
+
+`/travel` compares *starting rates per night* for the same hotel across platforms
+(cross-platform matching with per-match confidence scores), and surfaces listings that exist
+on exactly one platform in an **exclusive rail**. Every rate on the page names its source
+platform, link, and collection time — no estimated or undated prices.
 
 ## Demo of self-healing (the real thing)
 
