@@ -38,6 +38,9 @@ export const COLLECTORS: Record<string, string> = {
   bhphoto: process.env.COLLECTOR_BHPHOTO ?? '',
   mindfactory: process.env.COLLECTOR_MINDFACTORY ?? '',
   chaos: process.env.COLLECTOR_CHAOS ?? '',
+  oyo: process.env.COLLECTOR_OYO ?? '',
+  fabhotels: process.env.COLLECTOR_FABHOTELS ?? '',
+  treebo: process.env.COLLECTOR_TREEBO ?? '',
 };
 
 export function assertToken(): void {

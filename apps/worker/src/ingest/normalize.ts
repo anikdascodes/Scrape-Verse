@@ -103,7 +103,7 @@ export function pick(row: RawRow, candidates: string[]): unknown {
 export function flattenRows(raw: RawRow[]): RawRow[] {
   const out: RawRow[] = [];
   for (const row of raw) {
-    const nested = row.products ?? row.listings ?? row.items ?? row.results;
+    const nested = row.products ?? row.listings ?? row.items ?? row.results ?? row.hotels;
     if (Array.isArray(nested) && nested.length > 0) {
       for (const item of nested) {
         if (item && typeof item === 'object') out.push(item as RawRow);
