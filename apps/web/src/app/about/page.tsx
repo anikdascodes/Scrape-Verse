@@ -20,7 +20,7 @@ export default function About() {
         <li><b>Heal</b> — a serial queue drives the AI Flow repair loop, one AI job at a time.</li>
         <li><b>Verify</b> — the healed collector must produce healthy rows before the incident closes.</li>
       </ol>
-      <p style={{ color: "var(--muted)" }}>
+      <p style={{ color: "var(--muted-foreground)" }}>
         Chaos Lab proves it live: a fictional store we host can be redesigned at the push of a button —
         watch the pipeline detect, repair and recover in real time.
       </p>

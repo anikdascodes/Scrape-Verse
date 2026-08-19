@@ -79,3 +79,27 @@ CREATE TABLE IF NOT EXISTS credit_log (
   balance_usd   REAL NOT NULL,
   checked_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS hotel_offers (
+  id            INTEGER PRIMARY KEY,
+  run_id        INTEGER NOT NULL REFERENCES runs(id),
+  collector_id  INTEGER NOT NULL REFERENCES collectors(id),
+  city          TEXT NOT NULL,
+  hotel_name    TEXT NOT NULL,
+  price_inr     REAL,
+  rating        REAL,
+  url           TEXT,
+  scraped_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_offers_city ON hotel_offers(city, scraped_at DESC);
+
+CREATE TABLE IF NOT EXISTS hotel_matches (
+  id            INTEGER PRIMARY KEY,
+  run_id        INTEGER NOT NULL REFERENCES runs(id),
+  city          TEXT NOT NULL,
+  match_id      TEXT NOT NULL,
+  canonical_name TEXT NOT NULL,
+  offer_id      INTEGER NOT NULL REFERENCES hotel_offers(id),
+  score         REAL NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_match_group ON hotel_matches(match_id, offer_id);

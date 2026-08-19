@@ -31,7 +31,7 @@ export default async function Health() {
   const latest = credits?.history?.[0];
 
   if (!collectors) {
-    return <div className="panel p-8 text-center" style={{ color: "var(--muted)" }}>Worker unreachable.</div>;
+    return <div className="panel p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Worker unreachable.</div>;
   }
 
   return (
@@ -40,11 +40,11 @@ export default async function Health() {
         <h1 className="text-xl font-bold">Collector health</h1>
         {latest && (
           <div className="panel px-4 py-2 text-sm flex items-center gap-3">
-            <span style={{ color: "var(--muted)" }}>Bright Data balance</span>
+            <span style={{ color: "var(--muted-foreground)" }}>Bright Data balance</span>
             <span className="font-bold" style={{ color: "var(--green)" }}>
               ${latest.balance_usd.toFixed(2)}
             </span>
-            <span className="mono text-xs" style={{ color: "var(--muted)" }}>
+            <span className="mono text-xs" style={{ color: "var(--muted-foreground)" }}>
               {latest.checked_at?.slice(0, 16)}
             </span>
           </div>
@@ -57,9 +57,9 @@ export default async function Health() {
             <div className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full" style={{ background: c.open_incidents > 0 ? "var(--red)" : "var(--green)" }} />
               <span className="font-semibold">{c.name}</span>
-              <span className="ml-auto text-xs mono" style={{ color: "var(--muted)" }}>{c.kind}</span>
+              <span className="ml-auto text-xs mono" style={{ color: "var(--muted-foreground)" }}>{c.kind}</span>
             </div>
-            <dl className="mt-3 space-y-1 text-sm" style={{ color: "var(--muted)" }}>
+            <dl className="mt-3 space-y-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
               <div className="flex justify-between"><dt>last run</dt><dd className="mono text-xs">{c.last_run_at?.slice(0, 19) ?? "—"}</dd></div>
               <div className="flex justify-between"><dt>status</dt><dd className="mono">{c.last_status ?? "—"}</dd></div>
               <div className="flex justify-between"><dt>schedule</dt><dd className="mono">{c.schedule_min}m</dd></div>
@@ -70,25 +70,25 @@ export default async function Health() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
           Incident timeline
         </h2>
         {incidents && incidents.length > 0 ? (
           <div className="panel divide-y" style={{ borderColor: "var(--border)" }}>
             {incidents.map((i) => (
               <div key={i.id} className="px-4 py-3 flex items-center gap-4 text-sm">
-                <span className="mono text-xs" style={{ color: "var(--muted)" }}>#{i.id}</span>
+                <span className="mono text-xs" style={{ color: "var(--muted-foreground)" }}>#{i.id}</span>
                 <span className="font-medium">{i.collector}</span>
                 <span className="mono text-xs px-2 py-0.5 rounded" style={{ background: "var(--border)" }}>{i.type}</span>
-                <span className="flex-1 truncate" style={{ color: "var(--muted)" }}>{i.detail}</span>
+                <span className="flex-1 truncate" style={{ color: "var(--muted-foreground)" }}>{i.detail}</span>
                 <span className="mono text-xs" style={{ color: incidentColor(i.status) }}>{i.status}</span>
-                <span className="mono text-xs" style={{ color: "var(--muted)" }}>{i.event_count} events</span>
-                <span className="mono text-xs" style={{ color: "var(--muted)" }}>{i.opened_at.slice(0, 19)}</span>
+                <span className="mono text-xs" style={{ color: "var(--muted-foreground)" }}>{i.event_count} events</span>
+                <span className="mono text-xs" style={{ color: "var(--muted-foreground)" }}>{i.opened_at.slice(0, 19)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="panel p-6 text-center text-sm" style={{ color: "var(--muted)" }}>
+          <div className="panel p-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
             No incidents — all collectors healthy.
           </div>
         )}

@@ -36,4 +36,4 @@ export const fmtPrice = (p: number, cur: string) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(p);
 
 export const statusColor = (s: string | null) =>
-  s === "ok" ? "var(--green)" : s === "partial" ? "var(--amber)" : s === null ? "var(--muted)" : "var(--red)";
+  s === "ok" ? "var(--green)" : s === "partial" ? "var(--amber)" : s === null ? "var(--muted-foreground)" : "var(--red)";

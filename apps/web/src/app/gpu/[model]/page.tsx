@@ -33,8 +33,8 @@ function Chart({ series, cur }: { series: { store: string; points: { t: string; 
           const d = s.points.map((pt, i) => `${i === 0 ? "M" : "L"} ${x(i, s.points.length)} ${y(pt.p)}`).join(" ");
           return <path key={s.store} d={d} fill="none" stroke={COLORS[si % COLORS.length]} strokeWidth={2} />;
         })}
-        <text x={22} y={24} fill="var(--muted)" fontSize={11} className="mono">{fmtPrice(max, cur)}</text>
-        <text x={22} y={H - 12} fill="var(--muted)" fontSize={11} className="mono">{fmtPrice(min, cur)}</text>
+        <text x={22} y={24} fill="var(--muted-foreground)" fontSize={11} className="mono">{fmtPrice(max, cur)}</text>
+        <text x={22} y={H - 12} fill="var(--muted-foreground)" fontSize={11} className="mono">{fmtPrice(min, cur)}</text>
       </svg>
       <div className="flex gap-4 text-xs mt-1">
         {series.map((s, si) => (
@@ -68,19 +68,19 @@ export default async function GpuPage({ params }: { params: Promise<{ model: str
       <div className="flex items-baseline gap-4">
         <h1 className="text-xl font-bold">{decoded}</h1>
         {latest && (
-          <span className="text-sm" style={{ color: "var(--muted)" }}>
+          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>
             latest {fmtPrice(latest.price, latest.currency)} @ {latest.store}
           </span>
         )}
       </div>
       {hist === null ? (
-        <div className="panel p-6" style={{ color: "var(--muted)" }}>Worker unreachable.</div>
+        <div className="panel p-6" style={{ color: "var(--muted-foreground)" }}>Worker unreachable.</div>
       ) : hist.length === 0 ? (
-        <div className="panel p-6" style={{ color: "var(--muted)" }}>No price history yet for this model.</div>
+        <div className="panel p-6" style={{ color: "var(--muted-foreground)" }}>No price history yet for this model.</div>
       ) : (
         [...byCurrency.entries()].map(([cur, stores]) => (
           <section key={cur} className="panel p-4 space-y-2">
-            <h2 className="text-sm font-semibold" style={{ color: "var(--muted)" }}>{cur} price history (7d)</h2>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>{cur} price history (7d)</h2>
             <Chart cur={cur} series={[...stores.entries()].map(([store, points]) => ({ store, points }))} />
           </section>
         ))

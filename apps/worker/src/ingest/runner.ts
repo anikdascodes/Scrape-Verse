@@ -1,6 +1,18 @@
 import { getDb } from '../db/index.js';
 import { trigger, waitForDataset } from '../brightdata/client.js';
 import { normalizeRow, flattenRows, type RawRow } from './normalize.js';
+import { normalizeHotel } from '../travel/normalize.js';
+import { matchOffers } from '../travel/matcher.js';
+
+type CollectorRow = {
+  id: number;
+  c_id: string;
+  base_url: string;
+  currency: string;
+  required_fields: string;
+  vertical: string;
+  city: string | null;
+};
 
 export interface IngestResult {
   runId: number;
@@ -17,11 +29,10 @@ export interface IngestResult {
  */
 export async function ingestCollector(collectorName: string, triggeredBy = 'scheduler'): Promise<IngestResult> {
   const db = getDb();
-  const col = db.prepare('SELECT * FROM collectors WHERE name = ?').get(collectorName) as
-    | { id: number; c_id: string; base_url: string; currency: string; required_fields: string }
-    | undefined;
+  const col = db.prepare('SELECT * FROM collectors WHERE name = ?').get(collectorName) as CollectorRow | undefined;
 
   if (!col) throw new Error(`unknown collector: ${collectorName}`);
+  if (col.vertical === 'travel') return ingestTravel(col, triggeredBy);
 
   const startedAt = new Date().toISOString();
   const insRun = db.prepare(`INSERT INTO runs (collector_id, status, triggered_by, started_at)
@@ -66,3 +77,46 @@ export async function ingestCollector(collectorName: string, triggeredBy = 'sche
 }
 
 type NormalizedT = ReturnType<typeof normalizeRow>;
+
+/** Travel vertical ingest: same trigger/poll spine, travel normalizer + matcher post-ingest. */
+async function ingestTravel(col: CollectorRow, triggeredBy: string): Promise<IngestResult> {
+  const db = getDb();
+  const city = col.city ?? 'Goa';
+  const startedAt = new Date().toISOString();
+  const { lastInsertRowid } = db.prepare(`INSERT INTO runs (collector_id, status, triggered_by, started_at) VALUES (?, 'running', ?, ?)`)
+    .run(col.id, triggeredBy, startedAt);
+  const runId = Number(lastInsertRowid);
+
+  try {
+    const snapshotId = await trigger(col.c_id, [col.base_url]);
+    db.prepare('UPDATE runs SET snapshot_id = ? WHERE id = ?').run(snapshotId, runId);
+    const raw = flattenRows(await waitForDataset(snapshotId) as RawRow[]);
+
+    let rowsValid = 0;
+    const ins = db.prepare(`INSERT INTO hotel_offers (run_id, collector_id, city, hotel_name, price_inr, rating, url)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    const persist = db.transaction((rows: ReturnType<typeof normalizeHotel>[]) => {
+      for (const h of rows) ins.run(runId, col.id, city, h.hotel_name, h.price_inr, h.rating, h.url);
+    });
+
+    const normalized = raw.map(normalizeHotel).filter((h) => h.hotel_name && h.hotel_name !== 'Unknown');
+    for (const h of normalized) if (h.price_inr !== null) rowsValid++;
+    persist(normalized);
+
+    // post-ingest enrichment: cross-platform matching (failure-safe)
+    if (normalized.length) {
+      try { matchOffers(runId, city); } catch (e) { console.error('[travel] matcher failed:', e); }
+    }
+
+    const nullRate = normalized.length ? normalized.filter((h) => h.price_inr === null).length / normalized.length : 1;
+    const status: IngestResult['status'] = rowsValid === 0 ? 'failed' : nullRate > 0.3 ? 'partial' : 'ok';
+    db.prepare(`UPDATE runs SET status=?, rows_in=?, rows_valid=?, null_rate=?, finished_at=? WHERE id=?`)
+      .run(status, normalized.length, rowsValid, Math.round(nullRate * 1000) / 1000, new Date().toISOString(), runId);
+    return { runId, status, rowsIn: normalized.length, rowsValid, nullRate };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    db.prepare(`UPDATE runs SET status='failed', error=?, finished_at=? WHERE id=?`)
+      .run(msg.slice(0, 500), new Date().toISOString(), runId);
+    return { runId, status: 'failed', rowsIn: 0, rowsValid: 0, nullRate: 1, error: msg };
+  }
+}

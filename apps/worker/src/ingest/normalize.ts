@@ -89,7 +89,7 @@ export function normalizeStock(raw: unknown): string {
 }
 
 /** Field lookup tolerant to AI schema naming drift. */
-function pick(row: RawRow, candidates: string[]): unknown {
+export function pick(row: RawRow, candidates: string[]): unknown {
   const lower: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row)) lower[k.toLowerCase()] = v;
   for (const c of candidates) {
