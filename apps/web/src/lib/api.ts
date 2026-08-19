@@ -35,5 +35,31 @@ export async function getJSON<T>(path: string): Promise<T | null> {
 export const fmtPrice = (p: number, cur: string) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(p);
 
+export const fmtInr = (p: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(p);
+
+export interface TravelOffer {
+  platform: string;
+  hotel_name: string;
+  price_inr: number | null;
+  rating: number | null;
+  url: string | null;
+  score: number;
+}
+
+export interface TravelGroup {
+  match_id: string;
+  canonical_name: string;
+  offers: TravelOffer[];
+}
+
+export interface TravelOverview {
+  city: string;
+  groups: TravelGroup[];
+  exclusive: TravelOffer[];
+  as_of: string;
+  stale?: boolean;
+}
+
 export const statusColor = (s: string | null) =>
   s === "ok" ? "var(--green)" : s === "partial" ? "var(--amber)" : s === null ? "var(--muted-foreground)" : "var(--red)";

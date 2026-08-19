@@ -65,6 +65,62 @@ export async function buildServer() {
     return { incident: inc, events };
   });
 
+  app.get<{ Querystring: { city?: string } }>('/api/travel/overview', async (req) => {
+    const city = req.query.city ?? 'Goa';
+    // latest run per travel collector
+    const latestRun = db.prepare(`
+      SELECT r.id AS run_id, c.name AS platform FROM runs r
+      JOIN collectors c ON c.id = r.collector_id
+      WHERE c.vertical='travel' AND r.status IN ('ok','partial')
+      ORDER BY r.id DESC LIMIT 3`).all() as { run_id: number; platform: string }[];
+    if (latestRun.length === 0) return { city, groups: [], exclusive: [], stale: true };
+
+    const groups = db.prepare(`
+      SELECT m.match_id, m.canonical_name,
+             json_group_array(json_object(
+               'platform', c.name,
+               'hotel_name', o.hotel_name,
+               'price_inr', o.price_inr,
+               'rating', o.rating,
+               'url', o.url,
+               'score', m.score
+             )) AS offers
+      FROM hotel_matches m
+      JOIN hotel_offers o ON o.id = m.offer_id
+      JOIN collectors c ON c.id = o.collector_id
+      WHERE m.city = ? AND m.run_id = ?
+      GROUP BY m.match_id`).all(city, latestRun[0].run_id) as any[];
+
+    // exclusive: offers in exactly one platform within the latest run per platform
+    const exclusives = db.prepare(`
+      SELECT o.hotel_name, o.price_inr, o.rating, o.url, c.name AS platform
+      FROM hotel_offers o
+      JOIN collectors c ON c.id = o.collector_id
+      WHERE o.city = ? AND o.run_id IN (SELECT run_id FROM runs r JOIN collectors cc ON cc.id=r.collector_id WHERE cc.vertical='travel')
+        AND o.run_id = (SELECT MAX(id) FROM runs WHERE collector_id = o.collector_id AND status IN ('ok','partial'))
+        AND o.id NOT IN (SELECT offer_id FROM hotel_matches)
+      ORDER BY o.price_inr`).all(city) as any[];
+
+    return {
+      city,
+      groups: groups.map((g) => ({ ...g, offers: JSON.parse(g.offers) })),
+      exclusive: exclusives,
+      as_of: new Date().toISOString(),
+    };
+  });
+
+  app.get<{ Querystring: { matchId?: string } }>('/api/travel/history', async (req) => {
+    const matchId = req.query.matchId;
+    if (!matchId) return { error: 'matchId required' };
+    const rows = db.prepare(`
+      SELECT o.price_inr, o.scraped_at, c.name AS platform
+      FROM hotel_matches m JOIN hotel_offers o ON o.id = m.offer_id
+      JOIN collectors c ON c.id = o.collector_id
+      WHERE m.match_id = ?
+      ORDER BY o.scraped_at ASC`).all(matchId);
+    return rows;
+  });
+
   app.get('/api/alerts', async () => {
     return db.prepare('SELECT id, gpu_model, kind, threshold, triggered_at, note FROM alerts ORDER BY id DESC LIMIT 100').all();
   });
