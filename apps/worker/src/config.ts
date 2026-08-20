@@ -41,6 +41,7 @@ export const COLLECTORS: Record<string, string> = {
   oyo: process.env.COLLECTOR_OYO ?? '',
   fabhotels: process.env.COLLECTOR_FABHOTELS ?? '',
   treebo: process.env.COLLECTOR_TREEBO ?? '',
+  treebo_goa: process.env.COLLECTOR_TREEBO_GOA ?? '',
 };
 
 export function assertToken(): void {

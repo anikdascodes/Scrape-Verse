@@ -15,6 +15,8 @@ const CITY_URLS: Record<string, (slug: string) => string> = {
   treebo: (s) => `https://www.treebo.com/hotels-in-${s}/`,
   fabhotels: (s) => `https://www.fabhotels.com/hotels-in-${s}`,
   oyo: (s) => `https://www.oyorooms.com/hotels-in-${s}`,
+  // treebo_goa is a Goa-pinned collector — never re-point it at other cities
+  treebo_goa: () => `https://www.treebo.com/hotels-in-goa/`,
 };
 
 export function slugify(city: string): string {
@@ -33,6 +35,8 @@ export async function searchCity(cityInput: string): Promise<CitySearchResult> {
   bus.emitEvent({ type: 'chaos', collector: 'travel', payload: { step: 'city_search', city: slug } });
 
   for (const col of cols) {
+    // Goa-pinned collectors only participate in Goa searches
+    if (col.city === 'Goa' && slug !== 'goa') continue;
     const url = (CITY_URLS[col.name] ?? (() => col.base_url))(slug);
     try {
       const res = await ingestCollector(col.name, 'city_search', { targetUrl: url, city: cityInput.trim() });

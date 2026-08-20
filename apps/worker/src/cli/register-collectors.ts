@@ -12,7 +12,8 @@ const META: Record<string, Meta> = {
   chaos:       { kind: 'chaos', url: process.env.CHAOS_STORE_URL ?? 'https://hydra-chaos-store.vercel.app/',   currency: 'USD', schedule: 30,  vertical: 'gpu' },
   oyo:         { kind: 'real',  url: 'https://www.oyorooms.com/hotels-in-goa',  currency: 'INR', schedule: 360, vertical: 'travel', city: 'Goa' },
   fabhotels:   { kind: 'real',  url: 'https://www.fabhotels.com/hotels-in-goa', currency: 'INR', schedule: 360, vertical: 'travel', city: 'Goa' },
-  treebo:      { kind: 'real',  url: 'https://www.treebo.com/hotels-in-goa/',   currency: 'INR', schedule: 360, vertical: 'travel', city: 'Goa' },
+  treebo:      { kind: 'real',  url: 'https://www.treebo.com/hotels-in-kolkata/', currency: 'INR', schedule: 360, vertical: 'travel', city: 'Kolkata' },
+  treebo_goa:  { kind: 'real',  url: 'https://www.treebo.com/hotels-in-goa/',  currency: 'INR', schedule: 360, vertical: 'travel', city: 'Goa' },
 };
 
 const db = getDb();
