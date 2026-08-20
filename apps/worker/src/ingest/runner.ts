@@ -27,12 +27,12 @@ export interface IngestResult {
  * Full ingest for one collector: trigger → poll → normalize → persist run + prices.
  * Returns stats for the watchdog. Never throws: failures are captured as status='failed'.
  */
-export async function ingestCollector(collectorName: string, triggeredBy = 'scheduler'): Promise<IngestResult> {
+export async function ingestCollector(collectorName: string, triggeredBy = 'scheduler', opts?: { targetUrl?: string; city?: string }): Promise<IngestResult> {
   const db = getDb();
   const col = db.prepare('SELECT * FROM collectors WHERE name = ?').get(collectorName) as CollectorRow | undefined;
 
   if (!col) throw new Error(`unknown collector: ${collectorName}`);
-  if (col.vertical === 'travel') return ingestTravel(col, triggeredBy);
+  if (col.vertical === 'travel') return ingestTravel(col, triggeredBy, opts);
 
   const startedAt = new Date().toISOString();
   const insRun = db.prepare(`INSERT INTO runs (collector_id, status, triggered_by, started_at)
@@ -78,17 +78,18 @@ export async function ingestCollector(collectorName: string, triggeredBy = 'sche
 
 type NormalizedT = ReturnType<typeof normalizeRow>;
 
-/** Travel vertical ingest: same trigger/poll spine, travel normalizer + matcher post-ingest. */
-async function ingestTravel(col: CollectorRow, triggeredBy: string): Promise<IngestResult> {
+/** Travel vertical ingest: same trigger/poll spine, travel normalizer + matcher post-ingest.
+ *  targetUrl/city overrides make collectors city-parametric — user queries become live scrapes. */
+async function ingestTravel(col: CollectorRow, triggeredBy: string, opts?: { targetUrl?: string; city?: string }): Promise<IngestResult> {
   const db = getDb();
-  const city = col.city ?? 'Goa';
+  const city = opts?.city ?? col.city ?? 'Goa';
   const startedAt = new Date().toISOString();
   const { lastInsertRowid } = db.prepare(`INSERT INTO runs (collector_id, status, triggered_by, started_at) VALUES (?, 'running', ?, ?)`)
     .run(col.id, triggeredBy, startedAt);
   const runId = Number(lastInsertRowid);
 
   try {
-    const snapshotId = await trigger(col.c_id, [col.base_url]);
+    const snapshotId = await trigger(col.c_id, [opts?.targetUrl ?? col.base_url]);
     db.prepare('UPDATE runs SET snapshot_id = ? WHERE id = ?').run(snapshotId, runId);
     const raw = flattenRows(await waitForDataset(snapshotId) as RawRow[]);
 

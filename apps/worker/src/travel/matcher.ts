@@ -3,12 +3,14 @@ import { getDb } from '../db/index.js';
 
 const NOISE = new Set(['hotel', 'hotels', 'resort', 'resorts', 'stay', 'stays', 'rooms', 'room', 'inn', 'the', 'and', 'near', 'goa', 'beach', 'collection', 'villa', 'villas', 'homestay', 'cottage', 'palace', 'heritage', 'club', 'a', 'by', 'on', 'super', 'flagship', 'townhouse', 'capital', 'o']);
 
-/** Extract a blocking key: brand + numeric id when present (OYO 1234, FabHotels 87…). */
+/** Extract a HIGH-PRECISION blocking key: brand + numeric ID only (OYO 1234…).
+ *  Brands without an ID (all FabHotels share "FABHOTEL") are NOT blocking keys —
+ *  they'd fuse different properties. Those fall through to fuzzy scoring instead. */
 export function brandKey(name: string): string | null {
-  const m = name.match(/(OYO|Collection O|Fab(\w+)|Treebo)\s*([0-9]+\b)?/i);
-  if (!m) return null;
+  const m = name.match(/(OYO|Collection O|O2|Flagship|Townhouse|Spot On|Fab\w+|Treebo)\s*([0-9]{2,}\b)/i);
+  if (!m || !m[2]) return null;
   const brand = String(m[1]).replace(/\s+/g, '').toUpperCase();
-  return `${brand}${m[3] ? ':' + m[3] : ''}`;
+  return `${brand}:${m[2]}`;
 }
 
 export function tokens(name: string): string[] {
@@ -73,7 +75,8 @@ export function matchOffers(runId: number, city: string): { matchId: string; can
     if (used.has(o.id)) continue;
     const key = brandKey(o.hotel_name);
     if (!key) continue;
-    const cluster = offers.filter((x) => !used.has(x.id) && brandKey(x.hotel_name) === key && scorePair(o.hotel_name, x.hotel_name) >= 0.6);
+    // numeric-ID block: match even across naming variants, but never fuse different ids
+    const cluster = offers.filter((x) => !used.has(x.id) && brandKey(x.hotel_name) === key);
     if (cluster.length > 1) {
       for (const c of cluster) used.add(c.id);
       groups.push({ matchId: matchIdFor(cluster.map((c) => c.hotel_name)), canonical: cluster[0].hotel_name, offers: cluster });
@@ -94,6 +97,8 @@ export function matchOffers(runId: number, city: string): { matchId: string; can
     }
   }
 
+  // idempotent: re-matching replaces previous results for this run
+  db.prepare(`DELETE FROM hotel_matches WHERE run_id = ?`).run(runId);
   const ins = db.prepare(`INSERT INTO hotel_matches (run_id, city, match_id, canonical_name, offer_id, score) VALUES (?,?,?,?,?,?)`);
   for (const g of groups) {
     for (const o of g.offers) {

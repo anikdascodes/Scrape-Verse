@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { getDb } from '../db/index.js';
 import { runCollector } from '../watchdog/controller.js';
 import { redesignStore } from '../chaos/redesign.js';
+import { searchCity } from '../travel/search.js';
 import { bus, type HydraEvent } from '../events/bus.js';
 import { WORKER_PORT } from '../config.js';
 
@@ -130,6 +131,16 @@ export async function buildServer() {
       exclusive: exclusives,
       as_of: new Date().toISOString(),
     };
+  });
+
+  // On-demand city search — live-triggers travel collectors against the requested city
+  app.post<{ Body: { city?: string } }>('/api/travel/search', async (req, reply) => {
+    const city = req.body?.city ?? 'Goa';
+    if (!city || city.length < 2 || city.length > 40) {
+      return reply.code(400).send({ error: 'city required (2-40 chars)' });
+    }
+    const result = await searchCity(city);
+    return result;
   });
 
   app.get<{ Querystring: { matchId?: string } }>('/api/travel/history', async (req) => {

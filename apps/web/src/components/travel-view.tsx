@@ -29,6 +29,7 @@ function Stars({ rating }: { rating: number | null }) {
 }
 
 export default function TravelView({ data: initial }: { data: TravelOverview }) {
+  const [data, setData] = useState<TravelOverview>(initial);
   const [q, setQ] = useState("");
   const [city, setCity] = useState(initial.city);
   const [checkIn, setCheckIn] = useState("");
@@ -37,18 +38,20 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
   const [budget, setBudget] = useState<[number, number]>([0, 5000]);
   const [minRating, setMinRating] = useState("0");
   const [sort, setSort] = useState("price-asc");
+  const [liveSearching, setLiveSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const allHotels: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = useMemo(() => {
     const list: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = [];
-    for (const g of initial.groups) {
+    for (const g of data.groups) {
       for (const o of g.offers) list.push({ ...o, isExclusive: false, matchId: g.match_id });
     }
-    for (const o of initial.exclusive) list.push({ ...o, isExclusive: true });
+    for (const o of data.exclusive) list.push({ ...o, isExclusive: true });
     return list;
-  }, [initial]);
+  }, [data]);
 
   const cityQuery = city.trim().toLowerCase();
-  const isDefaultCity = !cityQuery || cityQuery === initial.city.toLowerCase();
+  const isDefaultCity = !cityQuery || cityQuery === data.city.toLowerCase();
   const filtered = useMemo(() => {
     const minR = Number(minRating);
     let list = allHotels.filter(
@@ -64,6 +67,32 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     if (sort === "rating-desc") list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     return list;
   }, [allHotels, q, budget, minRating, sort, cityQuery, isDefaultCity]);
+
+  async function runLiveSearch(target: string) {
+    const t = target.trim();
+    if (!t || liveSearching) return;
+    setLiveSearching(true);
+    setSearchError(null);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8787"}/api/travel/search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: t }),
+      });
+      const summary = await res.json();
+      if (!res.ok) throw new Error(summary.error ?? "search failed");
+      const fresh = await getJSON<TravelOverview>(`/api/travel/overview?city=${encodeURIComponent(t)}`);
+      if (fresh) {
+        setCity(t);
+        setQ("");
+        setData(fresh);
+      }
+    } catch (e) {
+      setSearchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLiveSearching(false);
+    }
+  }
 
   // Group filtered hotels by matchId for side-by-side comparison
   const grouped = useMemo(() => {
@@ -81,7 +110,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     return { matched: [...byMatch.values()], exclusive };
   }, [filtered]);
 
-  if (initial.stale) {
+  if (data.stale) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Hotels</h1>
@@ -104,7 +133,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
             <Search className="h-5 w-5" style={{ color: "var(--primary)" }} />
             <h1 className="font-bold text-lg">Find your stay</h1>
             <span className="ml-auto text-xs mono px-2 py-1 rounded-full" style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}>
-              {filtered.length} hotels · {initial.city}
+              {filtered.length} hotels · {data.city}
             </span>
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_0.7fr_auto] gap-3 items-end">
@@ -138,16 +167,22 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                 </SelectContent>
               </Select>
             </div>
-            <Button className="h-9 px-6 rounded-full w-full md:w-auto">
-              <Search className="h-4 w-4 mr-2" /> Search
+            <Button className="h-9 px-6 rounded-full w-full md:w-auto" onClick={() => runLiveSearch(city)} disabled={liveSearching}>
+              {liveSearching ? (
+                <><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />Scraping…</>
+              ) : (
+                <><Search className="h-4 w-4 mr-2" /> Search live</>
+              )}
             </Button>
           </div>
           <div className="px-4 pb-3 flex flex-wrap gap-2 items-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-            <span>Try:</span>
-            <button onClick={() => setQ("Baga")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Baga</button>
-            <button onClick={() => setQ("Calangute")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Calangute</button>
-            <button onClick={() => setBudget([0, 2000])} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Under ₹2k</button>
+            <span>Live-scrape a city:</span>
+            <button onClick={() => runLiveSearch("Kolkata")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Kolkata</button>
+            <button onClick={() => runLiveSearch("Mumbai")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Mumbai</button>
+            <button onClick={() => runLiveSearch("Jaipur")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Jaipur</button>
+            <span className="ml-1">· or type any Indian city above</span>
           </div>
+          {searchError && <div className="px-4 pb-2 text-xs" style={{ color: "var(--destructive)" }}>Search failed: {searchError}</div>}
         </CardContent>
       </Card>
 
