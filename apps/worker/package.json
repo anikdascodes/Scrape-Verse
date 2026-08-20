@@ -12,6 +12,7 @@
     "inspect": "tsx src/cli/inspect.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
     "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.0",
     "fastify": "^5.4.0",

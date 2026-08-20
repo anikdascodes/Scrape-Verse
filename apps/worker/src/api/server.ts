@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { getDb } from '../db/index.js';
 import { runCollector } from '../watchdog/controller.js';
 import { redesignStore } from '../chaos/redesign.js';
@@ -7,6 +8,7 @@ import { WORKER_PORT } from '../config.js';
 
 export async function buildServer() {
   const app = Fastify({ logger: false });
+  await app.register(cors, { origin: true });
   const db = getDb();
 
   app.get('/api/health', async () => ({ status: 'ok', uptime: process.uptime(), ts: new Date().toISOString() }));

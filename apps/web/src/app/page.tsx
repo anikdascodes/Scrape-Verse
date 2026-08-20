@@ -32,6 +32,7 @@ export default async function Overview() {
 
   return (
     <div className="space-y-8">
+      <h1 className="sr-only">GPU price intelligence — HYDRA</h1>
       <section className="flex flex-wrap gap-3">
         {collectors?.map((c) => (
           <div key={c.id} className="panel px-4 py-3 flex items-center gap-3 text-sm">
