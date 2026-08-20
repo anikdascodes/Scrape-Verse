@@ -47,21 +47,23 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     return list;
   }, [initial]);
 
+  const cityQuery = city.trim().toLowerCase();
+  const isDefaultCity = !cityQuery || cityQuery === initial.city.toLowerCase();
   const filtered = useMemo(() => {
     const minR = Number(minRating);
     let list = allHotels.filter(
       (o) =>
         (!q || o.hotel_name.toLowerCase().includes(q.toLowerCase())) &&
+        (isDefaultCity || o.hotel_name.toLowerCase().includes(cityQuery) || o.hotel_name.toLowerCase().includes(cityQuery.split(",")[0].trim())) &&
         (o.price_inr ?? 0) >= budget[0] &&
         (o.price_inr ?? 0) <= budget[1] &&
-        (o.rating ?? 0) >= minR &&
-        (!city || initial.city.toLowerCase() === city.toLowerCase())
+        (o.rating ?? 0) >= minR
     );
     if (sort === "price-asc") list = [...list].sort((a, b) => (a.price_inr ?? 9e9) - (b.price_inr ?? 9e9));
     if (sort === "price-desc") list = [...list].sort((a, b) => (b.price_inr ?? 0) - (a.price_inr ?? 0));
     if (sort === "rating-desc") list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     return list;
-  }, [allHotels, q, budget, minRating, sort, city, initial.city]);
+  }, [allHotels, q, budget, minRating, sort, cityQuery, isDefaultCity]);
 
   // Group filtered hotels by matchId for side-by-side comparison
   const grouped = useMemo(() => {
@@ -110,8 +112,11 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
               <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><MapPin className="h-3 w-3" /> Where to?</label>
               <div className="relative">
                 <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Goa" className="pl-8" />
+                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Try Baga, Calangute, Panjim, or Goa" className="pl-8" />
               </div>
+              <p className="text-[11px] mono" style={{ color: "var(--muted-foreground)" }}>
+                {isDefaultCity ? "Tracking Goa · more cities soon — try Baga or Calangute above" : `Filtering for "${city}"`}
+              </p>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Calendar className="h-3 w-3" /> Check-in</label>
