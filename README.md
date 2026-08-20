@@ -58,22 +58,24 @@ Created from the coding agent via `bdata scraper create <url> "<plain-language f
 
 | Vertical | Store / platform | Collector ID | Status |
 |---|---|---|---|
-| gpu | Newegg | `c_mswxuxrc1k9tpskymz` | ✅ 12 rows/run |
-| gpu | B&H Photo | `c_msx1ffltc5z0dpafz` | ✅ 28 rows/run (healed: price format) |
+| travel | Treebo (Goa) | `c_mt0c9y032or8r8ijpi` | ✅ 6 hotels/run |
+| travel | FabHotels (Goa) | `c_mt0e3tame0ha2e59g` | ✅ 4 hotels/run (healed: empty-extraction → list-level) |
 | gpu | Mindfactory (DE) | `c_mswy6s6g2737n9yo97` | ✅ 2,500+ rows/run (healed: scope + EUR format) |
+| gpu | B&H Photo | `c_msx1ffltc5z0dpafz` | ✅ 28 rows/run (healed: price format) |
+| gpu | Newegg | `c_mswxuxrc1k9tpskymz` | ✅ 12 rows/run |
 | gpu | Voltmart (chaos demo store) | `c_msx1fds1k6o3wjymc` | ✅ 20 rows/run — self-heals on every redesign |
-| travel | Treebo | `c_mt0c9y032or8r8ijpi` | ✅ 6 hotels/run (Goa) |
-| travel | FabHotels | `c_mt0e3tame0ha2e59g` | ✅ healing to list-level extraction (Goa) |
-| travel | Booking.com (reseller bridge) | pre-built data pipe | supplementary source for cross-platform matches |
 
-Same IDs after every heal — the Collector ID never changes across repairs.
+Every one of these is a **long-tail, custom** Scraper Studio collector — regional chains,
+specialist stores and a host we control — none served by a pre-built scraper. Same IDs after
+every heal: the Collector ID never changes across repairs.
 
 ### The travel product
 
-`/travel` compares *starting rates per night* for the same hotel across platforms
-(cross-platform matching with per-match confidence scores), and surfaces listings that exist
-on exactly one platform in an **exclusive rail**. Every rate on the page names its source
-platform, link, and collection time — no estimated or undated prices.
+`/travel` tracks Indian budget-chain hotels (Treebo, FabHotels) that exist on exactly one
+platform — inventory is genuinely exclusive in this market. Every listing gets a rate history,
+drop/restock alerts, source link and collection time in the **exclusive rail**, plus a
+cross-platform matcher (brand+ID blocking, fuzzy scoring with confidence) that links properties
+whenever two platforms do overlap. No estimated or undated prices anywhere.
 
 ## Demo of self-healing (the real thing)
 
