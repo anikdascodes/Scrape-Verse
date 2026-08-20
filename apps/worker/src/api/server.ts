@@ -17,24 +17,45 @@ export async function buildServer() {
              (SELECT status FROM runs r WHERE r.collector_id=c.id ORDER BY r.id DESC LIMIT 1) AS last_status,
              (SELECT finished_at FROM runs r WHERE r.collector_id=c.id ORDER BY r.id DESC LIMIT 1) AS last_run_at,
              (SELECT COUNT(*) FROM incidents i WHERE i.collector_id=c.id AND i.status IN ('open','healing','verifying')) AS open_incidents
-      FROM collectors c ORDER BY c.id`).all();
+      FROM collectors c WHERE c.active = 1 ORDER BY c.id`).all();
     return rows;
   });
 
   app.get('/api/overview', async () => {
     const rows = db.prepare(`
-      SELECT p.gpu_model,
-             COUNT(DISTINCT p.collector_id) AS store_count,
-             MIN(p.price) AS best_price,
-             MAX(p.price) AS max_price,
-             COUNT(*) AS listings,
-             c.currency
+      SELECT p.gpu_model, p.price, c.currency, c.name AS store
       FROM prices p JOIN collectors c ON c.id = p.collector_id
       WHERE p.gpu_model IS NOT NULL AND p.price IS NOT NULL
         AND p.run_id = (SELECT MAX(id) FROM runs WHERE collector_id = p.collector_id AND status IN ('ok','partial'))
-      GROUP BY p.gpu_model, c.currency
-      ORDER BY listings DESC LIMIT 50`).all();
-    return rows;
+      ORDER BY p.gpu_model`).all() as { gpu_model: string; price: number; currency: string; store: string }[];
+
+    const byKey = new Map<string, { prices: number[]; stores: Set<string>; listings: number }>();
+    for (const r of rows) {
+      const key = `${r.gpu_model}|${r.currency}`;
+      const g = byKey.get(key) ?? { prices: [], stores: new Set(), listings: 0 };
+      g.prices.push(r.price);
+      g.stores.add(r.store);
+      g.listings++;
+      byKey.set(key, g);
+    }
+    const out = [];
+    for (const [key, g] of byKey) {
+      const [gpu_model, currency] = key.split('|');
+      const sorted = [...g.prices].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      // outlier suppression: keep values within [0.35x, 3x] of the median
+      const inliers = sorted.filter((p) => p > median * 0.35 && p < median * 3);
+      const pool = inliers.length ? inliers : sorted;
+      out.push({
+        gpu_model,
+        currency,
+        store_count: g.stores.size,
+        best_price: pool[0],
+        max_price: pool[pool.length - 1],
+        listings: g.listings,
+      });
+    }
+    return out.sort((a, b) => b.listings - a.listings).slice(0, 50);
   });
 
   app.get<{ Querystring: { model?: string; days?: string } }>('/api/history', async (req) => {
