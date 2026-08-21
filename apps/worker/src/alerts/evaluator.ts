@@ -5,42 +5,50 @@ import { bus } from '../events/bus.js';
  * Post-ingest alert evaluation. Compares the latest run against the previous run for
  * the same collector and emits:
  *  - drop_pct: a GPU whose cheapest price fell by ≥ dropThreshold% vs the previous run
+ *    (same currency only — EUR/USD are never compared against each other)
  *  - restock: a GPU that was out of stock (or absent) last run and is in stock now
+ *  Dedup: consecutive-run duplicates for the same model+kind are suppressed.
  */
 const DROP_THRESHOLD = 0.05; // 5%
 
-interface ModelStat { gpu_model: string; min_price: number; in_stock: number }
+interface ModelStat { gpu_model: string; currency: string; min_price: number; in_stock: number }
 
 export function evaluateAlerts(collectorId: number, runId: number): number {
   const db = getDb();
 
   const curr = db.prepare(`
-    SELECT gpu_model, MIN(price) min_price, MAX(CASE WHEN stock_status='in stock' THEN 1 ELSE 0 END) in_stock
+    SELECT gpu_model, currency, MIN(price) min_price,
+           MAX(CASE WHEN stock_status='in stock' THEN 1 ELSE 0 END) in_stock
     FROM prices WHERE run_id=? AND gpu_model IS NOT NULL AND price IS NOT NULL
-    GROUP BY gpu_model`).all(runId) as ModelStat[];
+    GROUP BY gpu_model, currency`).all(runId) as ModelStat[];
 
   const prev = db.prepare(`
-    SELECT gpu_model, MIN(price) min_price, MAX(CASE WHEN stock_status='in stock' THEN 1 ELSE 0 END) in_stock
+    SELECT gpu_model, currency, MIN(price) min_price,
+           MAX(CASE WHEN stock_status='in stock' THEN 1 ELSE 0 END) in_stock
     FROM prices WHERE collector_id=? AND run_id != ? AND gpu_model IS NOT NULL AND price IS NOT NULL
       AND run_id = (SELECT MAX(id) FROM runs WHERE collector_id=? AND id != ? AND status IN ('ok','partial'))
-    GROUP BY gpu_model`).all(collectorId, runId, collectorId, runId) as ModelStat[];
+    GROUP BY gpu_model, currency`).all(collectorId, runId, collectorId, runId) as ModelStat[];
 
-  const prevMap = new Map(prev.map((p) => [p.gpu_model, p]));
+  const prevMap = new Map(prev.map((p) => [`${p.gpu_model}|${p.currency}`, p]));
   let created = 0;
 
   const insert = db.prepare(`INSERT INTO alerts (gpu_model, kind, threshold, triggered_at, run_id, note) VALUES (?,?,?,datetime('now'),?,?)`);
 
   for (const c of curr) {
-    const p = prevMap.get(c.gpu_model);
+    const p = prevMap.get(`${c.gpu_model}|${c.currency}`);
     if (!p) continue;
 
-    // price drop
+    // price drop — dedup: skip if the previous run also triggered this same drop
     if (p.min_price > 0 && c.min_price < p.min_price * (1 - DROP_THRESHOLD)) {
-      const pct = Math.round((1 - c.min_price / p.min_price) * 100);
-      const note = `${c.gpu_model} fell ${pct}% (${p.min_price.toFixed(2)} → ${c.min_price.toFixed(2)})`;
-      insert.run(c.gpu_model, 'drop_pct', pct, runId, note);
-      bus.emitEvent({ type: 'alert', collector: '', payload: { kind: 'drop_pct', note } });
-      created++;
+      const dup = db.prepare(`SELECT id FROM alerts WHERE gpu_model=? AND kind='drop_pct' AND run_id=(SELECT MAX(run_id) FROM alerts WHERE gpu_model=? AND kind='drop_pct') LIMIT 1`)
+        .get(c.gpu_model) as { id: number } | undefined;
+      if (!dup) {
+        const pct = Math.round((1 - c.min_price / p.min_price) * 100);
+        const note = `${c.gpu_model} fell ${pct}% (${p.min_price.toFixed(2)} → ${c.min_price.toFixed(2)})`;
+        insert.run(c.gpu_model, 'drop_pct', pct, runId, note);
+        bus.emitEvent({ type: 'alert', collector: '', payload: { kind: 'drop_pct', note } });
+        created++;
+      }
     }
     // restock
     if (p.in_stock === 0 && c.in_stock === 1) {

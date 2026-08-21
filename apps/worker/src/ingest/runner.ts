@@ -12,6 +12,13 @@ type CollectorRow = {
   required_fields: string;
   vertical: string;
   city: string | null;
+  name: string;
+};
+
+/** Per-collector price-object interpretation (see normalize.parsePrice). */
+const PRICE_HINTS: Record<string, 'cents_object' | 'dollars_object'> = {
+  newegg: 'cents_object',
+  bhphoto: 'dollars_object',
 };
 
 export interface IngestResult {
@@ -54,7 +61,7 @@ export async function ingestCollector(collectorName: string, triggeredBy = 'sche
       for (const p of rows) insPrice.run(runId, col.id, p.gpu_model, p.product_name, p.price, p.currency, p.stock_status, p.url);
     });
 
-    const normalized = raw.map(r => normalizeRow(r, col.currency));
+    const normalized = raw.map(r => normalizeRow(r, col.currency, PRICE_HINTS[col.name] ?? 'auto'));
     for (const p of normalized) {
       const nameOk = !!p.product_name;
       const priceOk = p.price !== null;

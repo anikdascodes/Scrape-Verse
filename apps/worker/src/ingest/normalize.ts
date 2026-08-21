@@ -34,19 +34,23 @@ export function extractGpuModel(title: string | null): string | null {
 }
 
 /** Parse price from number, "$1,299.99", "255,25 €", "USD 549.99", or Bright Data
- *  price objects {value, currency, symbol} where value is in cents (99900 → $999.00). */
-export function parsePrice(raw: unknown): number | null {
+ *  price objects {value, currency, symbol}.
+ *  Object values are AMBIGUOUS across collectors: Newegg sends integer cents (99900 = $999),
+ *  B&H post-heal sends decimal dollars (1478.99 = $1,478.99). The `hint` disambiguates:
+ *  'cents_object' → integer values are minor units; 'dollars_object' → value is dollars. */
+export function parsePrice(raw: unknown, hint: 'auto' | 'cents_object' | 'dollars_object' = 'auto'): number | null {
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
   if (raw === null || raw === undefined) return null;
 
-  // Bright Data structured price object: value in minor units (cents) for USD/EUR
   if (typeof raw === 'object' && !Array.isArray(raw)) {
     const obj = raw as { value?: unknown; amount?: unknown };
     const v = obj.value ?? obj.amount;
     if (v === undefined || v === null) return null;
     const n = typeof v === 'number' ? v : Number.parseFloat(String(v));
     if (!Number.isFinite(n)) return null;
-    // GPU domain: anything ≥ $10 arrives as ≥1000 cents; below that treat as dollars
+    if (hint === 'dollars_object') return n > 0 ? n : null;
+    if (hint === 'cents_object') return n > 0 ? n / 100 : null;
+    // auto: integers ≥ 1000 treated as cents (Newegg pattern), else dollars
     return n >= 1000 ? n / 100 : n;
   }
 
@@ -115,12 +119,12 @@ export function flattenRows(raw: RawRow[]): RawRow[] {
   return out;
 }
 
-export function normalizeRow(row: RawRow, currency: string): NormalizedPrice {
+export function normalizeRow(row: RawRow, currency: string, priceHint: 'auto' | 'cents_object' | 'dollars_object' = 'auto'): NormalizedPrice {
   const name = pick(row, ['product_name', 'name', 'title', 'product_name_title']) as string | null;
-  let price = parsePrice(pick(row, ['price', 'current_price', 'price_usd', 'price_eur', 'cost', 'amount']));
+  let price = parsePrice(pick(row, ['price', 'current_price', 'price_usd', 'price_eur', 'cost', 'amount']), priceHint);
   // German thousands mangling: source-side float("1.179,00") → 1.179 (exactly 3 decimals).
   // Real prices never carry 3 decimals — restore by ×1000. EUR only.
-  if (price !== null) {
+  if (price !== null && currency === 'EUR') {
     const dec = String(price).split('.')[1];
     if (dec && dec.length === 3) price = price * 1000;  // scraper ÷1000 (EUR "1.179,00" → 1.179)
     else if (dec && dec.length === 4) price = price * 100; // scraper ÷100 (USD "$1,309.99" → 13.0999)
