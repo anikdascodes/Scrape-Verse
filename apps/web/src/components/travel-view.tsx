@@ -110,6 +110,8 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     return { matched: [...byMatch.values()], exclusive };
   }, [filtered]);
 
+  const filteredExclusive = grouped.exclusive;
+
   if (data.stale) {
     return (
       <div className="space-y-6">
@@ -142,7 +144,13 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                 <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><MapPin className="h-3 w-3" /> Where to?</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
-                  <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Goa, Mumbai, Kolkata…" className="pl-9 h-11" />
+                  <Input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") runLiveSearch(city); }}
+                  placeholder="Goa, Mumbai, Kolkata…"
+                  className="pl-9 h-11"
+                />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -175,23 +183,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                 </Button>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
-              <span>Live-scrape a city:</span>
-              {["Kolkata", "Mumbai", "Jaipur"].map((c) => (
-                <button key={c} onClick={() => runLiveSearch(c)} disabled={liveSearching} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>{c}</button>
-              ))}
-              <span>· or type any Indian city above</span>
-              {searchError && <span style={{ color: "var(--destructive)" }}>· {searchError}</span>}
-            </div>
           </div>
-          <div className="px-4 pb-3 flex flex-wrap gap-2 items-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-            <span>Live-scrape a city:</span>
-            <button onClick={() => runLiveSearch("Kolkata")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Kolkata</button>
-            <button onClick={() => runLiveSearch("Mumbai")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Mumbai</button>
-            <button onClick={() => runLiveSearch("Jaipur")} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>Jaipur</button>
-            <span className="ml-1">· or type any Indian city above</span>
-          </div>
-          {searchError && <div className="px-4 pb-2 text-xs" style={{ color: "var(--destructive)" }}>Search failed: {searchError}</div>}
         </CardContent>
       </Card>
 
@@ -295,61 +287,73 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
         </section>
       )}
 
-      {/* EXCLUSIVE GRID — now with proper search + side-by-side price blocks */}
+      {/* EXCLUSIVE GRID */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          {grouped.matched.length > 0 ? "Also" : "All"} exclusive — only on one platform
-          <Badge variant="secondary" className="mono text-[11px]">{grouped.exclusive.length} hotels</Badge>
-        </h2>
-        {grouped.exclusive.length === 0 ? (
-          <Card><CardContent className="py-10 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
-            {q || budget[1] < 5000 || minRating !== "0" ? "No hotels match these filters — try widening the budget." : "No exclusive listings right now."}
+        {filteredExclusive.length === 0 && !isDefaultCity && !liveSearching ? (
+          /* New city with no data yet — offer to scrape it live */
+          <Card><CardContent className="py-12 text-center space-y-4">
+            <p className="font-medium">No data for <span className="text-gradient font-semibold">{city}</span> yet.</p>
+            <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+              HYDRA can scrape Treebo and FabHotels for this city right now — it takes about two minutes.
+            </p>
+            <Button onClick={() => runLiveSearch(city)} disabled={liveSearching} className="rounded-lg">
+              {liveSearching ? "Scraping…" : "Scrape it live"}
+            </Button>
           </CardContent></Card>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {grouped.exclusive.map((o) => {
-              const meta = PLATFORM_META[o.platform] ?? { color: "var(--border)", label: o.platform };
-              return (
-                <Card key={o.hotel_name + o.platform} className="overflow-hidden group hover:border-primary/20 transition-colors flex flex-col">
-                  <div className="h-32 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${meta.color}22 0%, var(--card) 70%)` }}>
-                    <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)", backgroundSize: "18px 18px" }} />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <BedDouble className="h-10 w-10" style={{ color: `${meta.color}55` }} />
-                    </div>
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium" style={{ background: meta.color, color: "white" }}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/80" /> {meta.label}
-                    </div>
-                    <div className="absolute top-3 right-3"><Stars rating={o.rating} /></div>
-                    <div className="absolute bottom-3 left-3 right-3 flex gap-1.5">
-                      <span className="text-[10px] mono px-1.5 py-0.5 rounded" style={{ background: "rgba(0,0,0,0.6)", color: "white" }}>Only on {meta.label}</span>
-                    </div>
-                  </div>
-                  <CardContent className="pt-4 flex-1 flex flex-col">
-                    <a href={o.url ?? "#"} target="_blank" className="font-medium text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                      {o.hotel_name}
-                    </a>
-                    <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}>
-                      <MapPin className="h-3 w-3" /> Goa · {o.platform}
-                    </p>
-                    <div className="mt-auto pt-4 flex items-end justify-between">
-                      <div>
-                        <p className="mono text-xl font-bold tracking-tight" style={{ color: "var(--primary)" }}>{o.price_inr ? fmtInr(o.price_inr) : "—"}</p>
-                        <p className="text-[11px] mono" style={{ color: "var(--muted-foreground)" }}>per night · starting rate</p>
+          <>
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              Exclusive listings <Badge variant="secondary" className="mono text-[11px]">{filteredExclusive.length} hotels</Badge>
+              <span className="text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>— only on one platform</span>
+            </h2>
+            {filteredExclusive.length === 0 ? (
+              <Card><CardContent className="py-10 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+                No hotels match these filters — try widening the budget.
+              </CardContent></Card>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredExclusive.map((o) => {
+                  const meta = PLATFORM_META[o.platform] ?? { color: "var(--border)", label: o.platform };
+                  return (
+                    <Card key={o.hotel_name + o.platform} className="overflow-hidden group hover:border-primary/20 transition-colors flex flex-col">
+                      <div className="h-32 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${meta.color}22 0%, var(--card) 70%)` }}>
+                        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)", backgroundSize: "18px 18px" }} />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <BedDouble className="h-10 w-10" style={{ color: `${meta.color}55` }} />
+                        </div>
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium" style={{ background: meta.color, color: "white" }}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-white/80" /> {meta.label}
+                        </div>
+                        <div className="absolute top-3 right-3"><Stars rating={o.rating} /></div>
                       </div>
-                      <a href={o.url ?? "#"} target="_blank" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
-                        View <ExternalLink className="ml-1 h-3 w-3" />
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                      <CardContent className="pt-4 flex-1 flex flex-col">
+                        <a href={o.url ?? "#"} target="_blank" className="font-medium text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                          {o.hotel_name}
+                        </a>
+                        <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}>
+                          <MapPin className="h-3 w-3" /> {data.city} · {o.platform}
+                        </p>
+                        <div className="mt-auto pt-4 flex items-end justify-between">
+                          <div>
+                            <p className="mono text-xl font-bold tracking-tight" style={{ color: "var(--primary)" }}>{o.price_inr ? fmtInr(o.price_inr) : "—"}</p>
+                            <p className="text-[11px] mono" style={{ color: "var(--muted-foreground)" }}>per night · starting rate</p>
+                          </div>
+                          <a href={o.url ?? "#"} target="_blank" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
+                            View <ExternalLink className="ml-1 h-3 w-3" />
+                          </a>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </section>
 
       <p className="text-xs text-center mono" style={{ color: "var(--muted-foreground)" }}>
-        Starting rates collected {initial.as_of.slice(0, 16)} · {initial.groups.length} matched · {initial.exclusive.length} exclusive · not date-specific availability
+        Starting rates collected {data.as_of.slice(0, 16)} · {data.groups.length} matched · {data.exclusive.length} exclusive · not date-specific availability
       </p>
     </div>
   );
