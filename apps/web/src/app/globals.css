@@ -5,46 +5,46 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* HYDRA tokens — dark-first product theme */
-  --background: #0a0e14;
-  --foreground: #d7dee8;
-  --card: #10151d;
-  --card-foreground: #d7dee8;
-  --popover: #151b25;
-  --popover-foreground: #d7dee8;
-  --primary: #3fb950;
-  --primary-foreground: #04240b;
-  --secondary: #1d2430;
-  --secondary-foreground: #d7dee8;
-  --muted: #161d27;
-  --muted-foreground: #7d8590;
-  --accent: #1d2430;
-  --accent-foreground: #e6edf3;
-  --destructive: #f85149;
-  --destructive-foreground: #ffffff;
-  --border: #1d2430;
-  --input: #232c3b;
-  --ring: #3fb950;
-  --chart-1: #3fb950;
-  --chart-2: #58a6ff;
-  --chart-3: #d29922;
-  --chart-4: #f78166;
-  --chart-5: #bc8cff;
-  --radius: 0.625rem;
-  --sidebar: #10151d;
-  --sidebar-foreground: #d7dee8;
-  --sidebar-primary: #3fb950;
-  --sidebar-primary-foreground: #04240b;
-  --sidebar-accent: #1d2430;
-  --sidebar-accent-foreground: #e6edf3;
-  --sidebar-border: #1d2430;
-  --sidebar-ring: #3fb950;
+  /* HYDRA — premium dark system (Linear-style layering) */
+  --background: #08090a;
+  --foreground: #edeef2;
+  --card: #0f1114;
+  --card-foreground: #edeef2;
+  --popover: #13151a;
+  --popover-foreground: #edeef2;
+  --primary: #4ade80;
+  --primary-foreground: #052e16;
+  --secondary: rgba(255, 255, 255, 0.04);
+  --secondary-foreground: #edeef2;
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: #8b8f98;
+  --accent: rgba(255, 255, 255, 0.06);
+  --accent-foreground: #f4f4f6;
+  --destructive: #f87171;
+  --destructive-foreground: #450a0a;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: rgba(74, 222, 128, 0.5);
+  --chart-1: #4ade80;
+  --chart-2: #60a5fa;
+  --chart-3: #fbbf24;
+  --chart-4: #fb7185;
+  --chart-5: #c084fc;
+  --radius: 0.75rem;
+  --sidebar: #0f1114;
+  --sidebar-foreground: #edeef2;
+  --sidebar-primary: #4ade80;
+  --sidebar-primary-foreground: #052e16;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #f4f4f6;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: rgba(74, 222, 128, 0.5);
 
-  /* legacy aliases (kept for chart + journal code) */
-  --green: #3fb950;
-  --red: #f85149;
-  --amber: #d29922;
-  --blue: #58a6ff;
+  /* legacy aliases */
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --blue: #60a5fa;
 }
 
 @theme inline {
@@ -91,19 +91,83 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    color-scheme: dark;
   }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  ::selection {
+    background: rgba(74, 222, 128, 0.25);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    border: 2px solid var(--background);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
   .mono {
     font-family: var(--font-geist-mono), ui-monospace, Consolas, monospace;
     font-variant-numeric: tabular-nums;
   }
+
+  /* Linear-style layered panel */
   .panel {
-    background: var(--card);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     border: 1px solid var(--border);
-    border-radius: calc(var(--radius) + 2px);
+    border-radius: 14px;
+  }
+
+  .panel-hover {
+    transition: border-color 200ms ease, transform 200ms ease;
+  }
+  .panel-hover:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+  }
+
+  /* Glass surface for nav/search bars */
+  .glass {
+    background: rgba(13, 15, 18, 0.72);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  /* Gradient display text */
+  .text-gradient {
+    background: linear-gradient(120deg, #4ade80 0%, #34d399 45%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Radial glow blob */
+  .glow {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    pointer-events: none;
+  }
+
+  /* Hairline divider */
+  .hairline {
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  /* Subtle dot grid */
+  .dotgrid {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1px, transparent 0);
+    background-size: 26px 26px;
   }
 }
