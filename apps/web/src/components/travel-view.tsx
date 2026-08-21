@@ -136,44 +136,53 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
               {filtered.length} hotels · {data.city}
             </span>
           </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_0.7fr_auto] gap-3 items-end">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><MapPin className="h-3 w-3" /> Where to?</label>
-              <div className="relative">
-                <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Try Baga, Calangute, Panjim, or Goa" className="pl-8" />
+          <div className="px-4 md:px-5 pt-4 pb-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_0.9fr_auto] gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><MapPin className="h-3 w-3" /> Where to?</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
+                  <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Goa, Mumbai, Kolkata…" className="pl-9 h-11" />
+                </div>
               </div>
-              <p className="text-[11px] mono" style={{ color: "var(--muted-foreground)" }}>
-                {isDefaultCity ? "Tracking Goa · more cities soon — try Baga or Calangute above" : `Filtering for "${city}"`}
-              </p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Calendar className="h-3 w-3" /> Check-in</label>
+                <Input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="h-11" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Calendar className="h-3 w-3" /> Check-out</label>
+                <Input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="h-11" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Users className="h-3 w-3" /> Guests</label>
+                <Select value={guests} onValueChange={(v) => setGuests(v as string)}>
+                  <SelectTrigger size="sm" className="h-11 w-full data-[size=sm]:h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 guest</SelectItem>
+                    <SelectItem value="2">2 guests</SelectItem>
+                    <SelectItem value="3">3 guests</SelectItem>
+                    <SelectItem value="4">4 guests</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button className="h-11 px-6 rounded-xl w-full md:w-auto" onClick={() => runLiveSearch(city)} disabled={liveSearching}>
+                  {liveSearching ? (
+                    <><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />Scraping…</>
+                  ) : (
+                    <><Search className="h-4 w-4 mr-2" /> Search live</>
+                  )}
+                </Button>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Calendar className="h-3 w-3" /> Check-in</label>
-              <Input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+            <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <span>Live-scrape a city:</span>
+              {["Kolkata", "Mumbai", "Jaipur"].map((c) => (
+                <button key={c} onClick={() => runLiveSearch(c)} disabled={liveSearching} className="px-2 py-1 rounded-full border hover:bg-secondary transition-colors" style={{ borderColor: "var(--border)" }}>{c}</button>
+              ))}
+              <span>· or type any Indian city above</span>
+              {searchError && <span style={{ color: "var(--destructive)" }}>· {searchError}</span>}
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Calendar className="h-3 w-3" /> Check-out</label>
-              <Input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}><Users className="h-3 w-3" /> Guests</label>
-              <Select value={guests} onValueChange={(v) => setGuests(v as string)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 guest</SelectItem>
-                  <SelectItem value="2">2 guests</SelectItem>
-                  <SelectItem value="3">3 guests</SelectItem>
-                  <SelectItem value="4">4 guests</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="h-9 px-6 rounded-full w-full md:w-auto" onClick={() => runLiveSearch(city)} disabled={liveSearching}>
-              {liveSearching ? (
-                <><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />Scraping…</>
-              ) : (
-                <><Search className="h-4 w-4 mr-2" /> Search live</>
-              )}
-            </Button>
           </div>
           <div className="px-4 pb-3 flex flex-wrap gap-2 items-center text-xs" style={{ color: "var(--muted-foreground)" }}>
             <span>Live-scrape a city:</span>
