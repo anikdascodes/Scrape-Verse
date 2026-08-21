@@ -91,13 +91,15 @@ export async function buildServer() {
 
   app.get<{ Querystring: { city?: string } }>('/api/travel/overview', async (req) => {
     const city = req.query.city ?? 'Goa';
-    // latest run per travel collector
-    const latestRun = db.prepare(`
-      SELECT r.id AS run_id, c.name AS platform FROM runs r
-      JOIN collectors c ON c.id = r.collector_id
-      WHERE c.vertical='travel' AND r.status IN ('ok','partial')
-      ORDER BY r.id DESC LIMIT 3`).all() as { run_id: number; platform: string }[];
-    if (latestRun.length === 0) return { city, groups: [], exclusive: [], stale: true };
+
+    // latest run PER COLLECTOR PER CITY (city-aware: Kolkata searches must not shadow Goa data)
+    const latestByCollector = (`
+      o.run_id = (SELECT MAX(o2.run_id) FROM hotel_offers o2
+                   WHERE o2.collector_id = o.collector_id AND o2.city = o.city)
+    `);
+
+    const anyRows = db.prepare(`SELECT COUNT(*) n FROM hotel_offers WHERE city = ?`).get(city) as { n: number };
+    if (anyRows.n === 0) return { city, groups: [], exclusive: [], stale: true };
 
     const groups = db.prepare(`
       SELECT m.match_id, m.canonical_name,
@@ -112,16 +114,14 @@ export async function buildServer() {
       FROM hotel_matches m
       JOIN hotel_offers o ON o.id = m.offer_id
       JOIN collectors c ON c.id = o.collector_id
-      WHERE m.city = ? AND m.run_id = ?
-      GROUP BY m.match_id`).all(city, latestRun[0].run_id) as any[];
+      WHERE m.city = ? AND c.active = 1 AND ${latestByCollector}
+      GROUP BY m.match_id`).all(city) as any[];
 
-    // exclusive: offers in exactly one platform within the latest run per platform
     const exclusives = db.prepare(`
       SELECT o.hotel_name, o.price_inr, o.rating, o.url, c.name AS platform
       FROM hotel_offers o
       JOIN collectors c ON c.id = o.collector_id
-      WHERE o.city = ? AND o.run_id IN (SELECT run_id FROM runs r JOIN collectors cc ON cc.id=r.collector_id WHERE cc.vertical='travel')
-        AND o.run_id = (SELECT MAX(id) FROM runs WHERE collector_id = o.collector_id AND status IN ('ok','partial'))
+      WHERE o.city = ? AND o.price_inr IS NOT NULL AND c.active = 1 AND ${latestByCollector}
         AND o.id NOT IN (SELECT offer_id FROM hotel_matches)
       ORDER BY o.price_inr`).all(city) as any[];
 
