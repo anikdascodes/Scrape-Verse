@@ -2,7 +2,7 @@
 
 > **Cut one head off, it grows back.**
 
-HYDRA monitors GPU prices across multiple online stores using custom scrapers built with
+HYDRA tracks GPU prices across three stores and hotel rates across Goa and Kolkata — one platform, two verticals — using custom scrapers built with
 **[Bright Data Scraper Studio](https://brightdata.com/products/scraper-studio)**. Every run is
 validated; when a store redesigns and a scraper breaks, a watchdog detects the failure, drives
 Bright Data's **self-healing** flow end-to-end, and repairs the scraper automatically — no
