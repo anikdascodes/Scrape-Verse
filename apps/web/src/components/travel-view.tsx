@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, MapPin, Calendar, Users, Star, ExternalLink, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { Search, MapPin, Calendar, Users, Star, ExternalLink, SlidersHorizontal, ArrowUpDown, BedDouble } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -302,9 +302,10 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
               const meta = PLATFORM_META[o.platform] ?? { color: "var(--border)", label: o.platform };
               return (
                 <Card key={o.hotel_name + o.platform} className="overflow-hidden group hover:border-primary/20 transition-colors flex flex-col">
-                  <div className="h-32 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${meta.color}18, var(--card))` }}>
+                  <div className="h-32 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${meta.color}22 0%, var(--card) 70%)` }}>
+                    <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)", backgroundSize: "18px 18px" }} />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl opacity-10">🏨</span>
+                      <BedDouble className="h-10 w-10" style={{ color: `${meta.color}55` }} />
                     </div>
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium" style={{ background: meta.color, color: "white" }}>
                       <span className="w-1.5 h-1.5 rounded-full bg-white/80" /> {meta.label}

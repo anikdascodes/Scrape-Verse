@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Flame } from "lucide-react";
 import { WORKER_URL } from "@/lib/api";
 
 interface Event {
@@ -69,7 +70,7 @@ export default function ChaosLab() {
             className="px-4 py-2 rounded-lg font-semibold text-sm text-black"
             style={{ background: "var(--red)", opacity: busy ? 0.6 : 1 }}
           >
-            {busy ? "Redesigning…" : "🔥 Redesign store"}
+            {busy ? "Redesigning…" : (<span className="inline-flex items-center gap-2"><Flame className="h-4 w-4" /> Redesign store</span>)}
           </button>
         </div>
       </div>
