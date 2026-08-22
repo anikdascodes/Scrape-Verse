@@ -192,9 +192,11 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                   {c}
                 </button>
               ))}
-              <span className="px-2 py-1 rounded-full border cursor-pointer transition-colors hover:bg-secondary" style={{ borderColor: "var(--border)" }} onClick={() => setCity("Baga")}>
+              <button type="button" onClick={() => setCity("Baga")} disabled={liveSearching}
+                className="px-2 py-1 rounded-full border transition-colors disabled:opacity-50 hover:bg-secondary"
+                style={{ borderColor: "var(--border)" }}>
                 Baga area
-              </span>
+              </button>
               <span>· or type any Indian city above and press Enter</span>
               {searchError && <span style={{ color: "var(--destructive)" }}>· {searchError}</span>}
             </div>
