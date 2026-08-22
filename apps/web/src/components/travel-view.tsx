@@ -183,6 +183,21 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                 </Button>
               </div>
             </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <span>Live-scrape a city:</span>
+              {["Kolkata", "New Delhi", "Jaipur", "Mumbai"].map((c) => (
+                <button key={c} onClick={() => runLiveSearch(c)} disabled={liveSearching}
+                  className="px-2 py-1 rounded-full border transition-colors disabled:opacity-50 hover:bg-secondary"
+                  style={{ borderColor: "var(--border)" }}>
+                  {c}
+                </button>
+              ))}
+              <span className="px-2 py-1 rounded-full border cursor-pointer transition-colors hover:bg-secondary" style={{ borderColor: "var(--border)" }} onClick={() => setCity("Baga")}>
+                Baga area
+              </span>
+              <span>· or type any Indian city above and press Enter</span>
+              {searchError && <span style={{ color: "var(--destructive)" }}>· {searchError}</span>}
+            </div>
           </div>
         </CardContent>
       </Card>
