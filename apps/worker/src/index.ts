@@ -9,6 +9,10 @@ const db = getDb();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
 const CHAOS_TEST = process.env.CHAOS_TEST_ENABLED === 'on';
 
+// Boot reconciliation: any run still marked 'running' from a previous process is orphaned.
+db.prepare(`UPDATE runs SET status='failed', error='interrupted by restart',
+  finished_at=datetime('now') WHERE status='running'`).run();
+
 async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
   const cols = db.prepare('SELECT name FROM collectors WHERE kind=? AND active=1').all(kind) as { name: string }[];
   for (const c of cols) {

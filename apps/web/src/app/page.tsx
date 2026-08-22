@@ -9,11 +9,21 @@ import { getJSON, fmtPrice, fmtInr, type OverviewRow, type CollectorRow, type Tr
 
 export const dynamic = "force-dynamic";
 
+interface AlertRow {
+  id: number;
+  gpu_model: string;
+  kind: string;
+  threshold: number;
+  triggered_at: string;
+  note: string;
+}
+
 export default async function Landing() {
-  const [overview, collectors, travel] = await Promise.all([
+  const [overview, collectors, travel, alerts] = await Promise.all([
     getJSON<OverviewRow[]>("/api/overview"),
     getJSON<CollectorRow[]>("/api/collectors"),
     getJSON<TravelOverview>("/api/travel/overview?city=Goa"),
+    getJSON<AlertRow[]>("/api/alerts"),
   ]);
 
   if (!overview) {
@@ -108,6 +118,29 @@ export default async function Landing() {
           </div>
         ))}
       </section>
+
+      {/* ═══ LIVE SIGNALS ═══ */}
+      {alerts && alerts.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-center text-sm font-medium uppercase tracking-[0.2em]" style={{ color: "var(--muted-foreground)" }}>
+            Latest signals
+          </h2>
+          <div className="flex flex-wrap justify-center gap-2">
+            {alerts.slice(0, 4).map((a) => (
+              <span key={a.id} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border"
+                style={{
+                  borderColor: a.kind === "restock" ? "rgba(74,222,128,0.25)" : "rgba(250,204,21,0.25)",
+                  background: a.kind === "restock" ? "rgba(74,222,128,0.06)" : "rgba(250,204,21,0.06)",
+                  color: "var(--foreground)",
+                }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: a.kind === "restock" ? "var(--primary)" : "var(--chart-3)" }} />
+                <span className="mono">{a.note}</span>
+                <span className="mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{a.triggered_at.slice(5, 16)}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══ BENTO — HOW IT WORKS ═══ */}
       <section className="grid md:grid-cols-5 gap-3">
