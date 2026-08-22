@@ -9,6 +9,7 @@ export function runMigrations(db: Database.Database): void {
   const migrations: string[] = [
     "ALTER TABLE collectors ADD COLUMN vertical TEXT NOT NULL DEFAULT 'gpu'",
     "ALTER TABLE collectors ADD COLUMN city TEXT",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_one_open_incident_per_collector ON incidents(collector_id) WHERE status IN ('open','healing','verifying')",
   ];
   for (const sql of migrations) {
     try {

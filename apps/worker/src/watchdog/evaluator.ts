@@ -40,17 +40,14 @@ export function validateRun(collectorId: number, res: IngestResult): ValidatorVe
   return null;
 }
 
-/** Open an incident if none open for this collector; dedupes. Returns incident id or null. */
+/** Open an incident if none open for this collector; race-safe via partial unique index. */
 export function openIncident(collectorId: number, runId: number, v: ValidatorVerdict): number | null {
   const db = getDb();
-  const open = db.prepare(`SELECT id FROM incidents WHERE collector_id=? AND status IN ('open','healing','verifying')`)
-    .get(collectorId) as { id: number } | undefined;
-  if (open) return null;
-
   const { lastInsertRowid } = db.prepare(
-    `INSERT INTO incidents (collector_id, run_id, type, severity, detail) VALUES (?,?,?,?,?)`
+    `INSERT OR IGNORE INTO incidents (collector_id, run_id, type, severity, detail) VALUES (?,?,?,?,?)`
   ).run(collectorId, runId, v.type, v.severity, v.detail);
   const id = Number(lastInsertRowid);
+  if (id === 0) return null; // ignored: an open incident already exists (race-safe)
   db.prepare(`INSERT INTO heal_events (incident_id, step, status, detail_json) VALUES (?,?,?,?)`)
     .run(id, 'detected', 'ok', JSON.stringify(v));
   return id;

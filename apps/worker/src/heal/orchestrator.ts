@@ -21,7 +21,9 @@ export async function healIncident(incidentId: number): Promise<'closed' | 'fail
   const col = db.prepare(`SELECT * FROM collectors WHERE id=?`).get(inc.collector_id) as CollectorRow;
   if (!inc || !col) return 'failed';
 
-  const autoApprove = col.kind === 'chaos';
+  // Autonomous by policy: every heal auto-approves (hackathon story = zero humans).
+  // Kept as a variable so a human-gated mode can be reintroduced per collector later.
+  const autoApprove = true;
 
   db.prepare(`UPDATE incidents SET status='healing' WHERE id=?`).run(incidentId);
   bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'diagnosed' } });
@@ -30,6 +32,19 @@ export async function healIncident(incidentId: number): Promise<'closed' | 'fail
   const MAX_ATTEMPTS = 2;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const prompt = healPrompt(inc.type, inc.detail);
+
+    // PRE-STEP: resume an orphaned server-side heal if one is paused at approval
+    // (survives worker restarts / lost in-memory state)
+    try {
+      const state = await pollHeal(col.c_id, undefined, { intervalMs: 1000, timeoutMs: 3000 });
+      if (state.kind === 'pending_approval') {
+        log(incidentId, 'awaiting_approval', 'info', { orphaned: true });
+        await resumeHeal(col.c_id, true, true);
+        log(incidentId, 'approved', 'ok', { orphaned: true, auto: true });
+        const fin = await pollHeal(col.c_id);
+        log(incidentId, 'resaved', fin.kind === 'done' ? 'ok' : 'fail', { outcome: fin.kind });
+      }
+    } catch { /* no orphaned job — continue normally */ }
 
     log(incidentId, 'refactor_requested', 'info', { attempt, prompt: prompt.slice(0, 500) });
     bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'refactor_requested', attempt } });

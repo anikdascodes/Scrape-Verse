@@ -4,6 +4,7 @@ import { buildServer } from './api/server.js';
 import { runCollector } from './watchdog/controller.js';
 import { redesignStore } from './chaos/redesign.js';
 import { recordBalance } from './telemetry/credits.js';
+import { queueHeal } from './heal/orchestrator.js';
 
 const db = getDb();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
@@ -12,6 +13,10 @@ const CHAOS_TEST = process.env.CHAOS_TEST_ENABLED === 'on';
 // Boot reconciliation: any run still marked 'running' from a previous process is orphaned.
 db.prepare(`UPDATE runs SET status='failed', error='interrupted by restart',
   finished_at=datetime('now') WHERE status='running'`).run();
+
+// Boot reconciliation: incidents stuck open/healing/verifying from a dead process
+// get their heal re-queued — the system re-heals itself after a restart.
+const orphanIncidents = db.prepare(`SELECT id FROM incidents WHERE status IN ('open','healing','verifying')`).all() as { id: number }[];
 
 async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
   const cols = db.prepare('SELECT name FROM collectors WHERE kind=? AND active=1').all(kind) as { name: string }[];
@@ -42,6 +47,12 @@ async function chaosTest() {
 }
 
 const app = await buildServer();
+
+// Re-queue orphaned incident heals on boot (queue must exist after server build).
+for (const i of orphanIncidents) {
+  queueHeal(i.id);
+  console.log(`[boot] re-queued heal for incident ${i.id}`);
+}
 
 if (SCHED_ENABLED) {
   // real stores every 6h; chaos every 30min; optional periodic chaos test

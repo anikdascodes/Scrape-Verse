@@ -7,6 +7,13 @@ import { searchCity, isValidCity } from '../travel/search.js';
 import { bus, type HydraEvent } from '../events/bus.js';
 import { WORKER_PORT } from '../config.js';
 
+/** Coerce a query param to a safe string (duplicate keys arrive as arrays). */
+function qs(v: unknown, fallback = ''): string {
+  if (Array.isArray(v)) return String(v[0] ?? fallback);
+  if (v === undefined || v === null) return fallback;
+  return String(v);
+}
+
 export async function buildServer() {
   const app = Fastify({ logger: false });
   await app.register(cors, { origin: true });
@@ -62,8 +69,9 @@ export async function buildServer() {
   });
 
   app.get<{ Querystring: { model?: string; days?: string } }>('/api/history', async (req) => {
-    const model = req.query.model ?? '';
-    const days = Math.min(Number(req.query.days ?? 7), 30);
+    const model = qs(req.query.model);
+    const rawDays = Number(qs(req.query.days, '7'));
+    const days = Number.isFinite(rawDays) && rawDays > 0 ? Math.min(rawDays, 30) : 7;
     if (!model) return { error: 'model required' };
     const rows = db.prepare(`
       SELECT p.gpu_model, p.price, p.currency, p.scraped_at, c.name AS store
@@ -90,7 +98,7 @@ export async function buildServer() {
   });
 
   app.get<{ Querystring: { city?: string } }>('/api/travel/overview', async (req) => {
-    const city = req.query.city ?? 'Goa';
+    const city = qs(req.query.city, 'Goa');
 
     // latest run PER COLLECTOR PER CITY (city-aware: Kolkata searches must not shadow Goa data)
     const latestByCollector = (`
@@ -134,9 +142,9 @@ export async function buildServer() {
   });
 
   // On-demand city search — live-triggers travel collectors against the requested city
-  app.post<{ Body: { city?: string } }>('/api/travel/search', async (req, reply) => {
+  app.post<{ Body: { city?: unknown } }>('/api/travel/search', async (req, reply) => {
     const city = req.body?.city;
-    if (!city || !isValidCity(city)) {
+    if (typeof city !== 'string' || !isValidCity(city)) {
       return reply.code(400).send({ error: 'valid city required (2-40 chars, must contain letters)' });
     }
     const result = await searchCity(city);
@@ -144,7 +152,7 @@ export async function buildServer() {
   });
 
   app.get<{ Querystring: { matchId?: string } }>('/api/travel/history', async (req) => {
-    const matchId = req.query.matchId;
+    const matchId = qs(req.query.matchId);
     if (!matchId) return { error: 'matchId required' };
     const rows = db.prepare(`
       SELECT o.price_inr, o.scraped_at, c.name AS platform

@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS incidents (
   opened_at     TEXT NOT NULL DEFAULT (datetime('now')),
   closed_at     TEXT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_open_incident_per_collector
+  ON incidents(collector_id)
+  WHERE status IN ('open','healing','verifying');
 
 CREATE TABLE IF NOT EXISTS heal_events (
   id            INTEGER PRIMARY KEY,
