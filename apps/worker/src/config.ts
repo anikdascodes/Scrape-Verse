@@ -19,7 +19,9 @@ function loadRootEnv() {
       const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
       if (!m) continue;
       const [, k, v] = m;
-      if (!process.env[k]) process.env[k] = v.replace(/^["']|["']$/g, '');
+      if (!process.env[k] || String(process.env[k]).includes('${')) {
+        process.env[k] = v.replace(/^["']|["']$/g, '');
+      }
     }
   }
 }
@@ -44,15 +46,23 @@ export const API_BASE = 'https://api.brightdata.com';
 export const DB_PATH = process.env.HYDRA_DB_PATH ?? './data/hydra.db';
 export const WORKER_PORT = Number(process.env.WORKER_PORT ?? 8787);
 
+/** Keep env value only when it looks like a real collector id (no ${...} placeholders). */
+function sanitizeId(v: string | undefined): string {
+  if (typeof v !== 'string') return '';
+  const t = v.trim();
+  if (!t || t.includes('${') || t.length < 8) return '';
+  return t;
+}
+
 export const COLLECTORS: Record<string, string> = {
-  newegg: process.env.COLLECTOR_NEWEGG ?? '',
-  bhphoto: process.env.COLLECTOR_BHPHOTO ?? '',
-  mindfactory: process.env.COLLECTOR_MINDFACTORY ?? '',
-  chaos: process.env.COLLECTOR_CHAOS ?? '',
-  oyo: process.env.COLLECTOR_OYO ?? '',
-  fabhotels: process.env.COLLECTOR_FABHOTELS ?? '',
-  treebo: process.env.COLLECTOR_TREEBO ?? '',
-  treebo_goa: process.env.COLLECTOR_TREEBO_GOA ?? '',
+  newegg: sanitizeId(process.env.COLLECTOR_NEWEGG),
+  bhphoto: sanitizeId(process.env.COLLECTOR_BHPHOTO),
+  mindfactory: sanitizeId(process.env.COLLECTOR_MINDFACTORY),
+  chaos: sanitizeId(process.env.COLLECTOR_CHAOS),
+  oyo: sanitizeId(process.env.COLLECTOR_OYO),
+  fabhotels: sanitizeId(process.env.COLLECTOR_FABHOTELS),
+  treebo: sanitizeId(process.env.COLLECTOR_TREEBO),
+  treebo_goa: sanitizeId(process.env.COLLECTOR_TREEBO_GOA),
 };
 
 export function assertToken(): void {

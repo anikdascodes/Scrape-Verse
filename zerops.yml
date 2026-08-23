@@ -4,8 +4,6 @@ zerops:
     build:
       base: nodejs@22
       os: ubuntu
-      envVariables:
-        NEXT_PUBLIC_WORKER_URL: https://worker-hydra.prg1.zerops.app
       buildCommands:
         - cd apps/web && npm install && npm run build
       cache:

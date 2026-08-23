@@ -1,5 +1,9 @@
-export const WORKER_URL =
-  process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8787";
+export const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
+
+const ABS_BASE =
+  typeof window === "undefined"
+    ? `http://localhost:${process.env.PORT ?? 3000}`
+    : "";
 
 export interface OverviewRow {
   gpu_model: string;
@@ -24,7 +28,7 @@ export interface CollectorRow {
 
 export async function getJSON<T>(path: string): Promise<T | null> {
   try {
-    const r = await fetch(`${WORKER_URL}${path}`, { cache: "no-store" });
+    const r = await fetch(`${ABS_BASE}${WORKER_URL}${path}`, { cache: "no-store" });
     if (!r.ok) return null;
     return (await r.json()) as T;
   } catch {

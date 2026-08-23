@@ -11,7 +11,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { getJSON, fmtInr, type TravelOverview, type TravelOffer } from "@/lib/api";
+import { getJSON, WORKER_URL, fmtInr, type TravelOverview, type TravelOffer } from
+"@/lib/api";
 
 const PLATFORM_META: Record<string, { color: string; label: string; shortLabel: string }> = {
   oyo: { color: "#e23744", label: "OYO", shortLabel: "OYO" },
@@ -74,7 +75,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     setLiveSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8787"}/api/travel/search`, {
+      const res = await fetch(`${WORKER_URL}/api/travel/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ city: t }),
