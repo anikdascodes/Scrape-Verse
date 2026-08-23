@@ -66,10 +66,12 @@ export async function searchCity(cityInput: string): Promise<CitySearchResult> {
     void (async () => {
       for (const col of participants) {
         const url = (CITY_URLS[col.name] ?? (() => col.base_url))(slug);
+        console.log(`[city-search] ${col.name} -> ${url} (${canonical})`);
         try {
-          await ingestCollector(col.name, 'city_search', { targetUrl: url, city: canonical });
-        } catch {
-          /* details logged by the ingester */
+          const res = await ingestCollector(col.name, 'city_search', { targetUrl: url, city: canonical });
+          console.log(`[city-search] ${col.name} done: ${res.status} rows=${res.rowsValid}/${res.rowsIn}`);
+        } catch (e) {
+          console.error(`[city-search] ${col.name} failed:`, e instanceof Error ? e.message : e);
         }
       }
     })();

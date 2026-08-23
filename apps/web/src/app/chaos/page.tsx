@@ -40,7 +40,11 @@ export default function ChaosLab() {
   async function redesign() {
     setBusy(true);
     try {
-      const r = await fetch(`${WORKER_URL}/api/chaos/redesign`, { method: "POST" });
+      const r = await fetch(`${WORKER_URL}/api/chaos/redesign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
       const data = await r.json();
       if (!r.ok) console.error(data);
     } catch (e) {
