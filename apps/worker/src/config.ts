@@ -25,9 +25,9 @@ function loadRootEnv() {
 }
 loadRootEnv();
 
-/** Canonical Bright Data API token. Accepts BRIGHT_DATA_API_KEY or Bright_Data_API. */
+/** Canonical Bright Data API token. Accepts BRIGHT_DATA_API_KEY, Bright_Data_API or BD_API_KEY. */
 export const API_TOKEN: string =
-  process.env.BRIGHT_DATA_API_KEY ?? process.env.Bright_Data_API ?? '';
+  process.env.BRIGHT_DATA_API_KEY ?? process.env.Bright_Data_API ?? process.env.BD_API_KEY ?? '';
 
 export const API_BASE = 'https://api.brightdata.com';
 export const DB_PATH = process.env.HYDRA_DB_PATH ?? './data/hydra.db';
