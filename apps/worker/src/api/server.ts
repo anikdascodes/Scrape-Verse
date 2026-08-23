@@ -192,12 +192,32 @@ export async function buildServer() {
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
+      'X-Accel-Buffering': 'no',
       Connection: 'keep-alive',
     });
+    reply.raw.flushHeaders?.();
     const send = (evt: HydraEvent) => reply.raw.write(`data: ${JSON.stringify(evt)}\n\n`);
     bus.on('event', send);
-    const ping = setInterval(() => reply.raw.write(': ping\n\n'), 15000);
+    reply.raw.write(`data: ${JSON.stringify({ type: 'system', collector: 'api', payload: { msg: 'connected' }, ts: new Date().toISOString() })}\n\n`);
+    const ping = setInterval(() => reply.raw.write(': ping\n\n'), 5000);
     req.raw.on('close', () => { clearInterval(ping); bus.off('event', send); });
+  });
+
+  // Polling fallback for the feed (when SSE is unavailable at the edge)
+  app.get('/api/feed', async () => {
+    const events = db.prepare(`
+      SELECT 'heal' AS kind, h.step AS step, h.status, h.detail_json, h.at AS created_at, i.collector_id, c.name AS collector
+      FROM heal_events h JOIN incidents i ON i.id = h.incident_id JOIN collectors c ON c.id = i.collector_id
+      ORDER BY h.id DESC LIMIT 30`).all();
+    const incidents = db.prepare(`
+      SELECT i.id, i.type, i.severity, i.status, i.opened_at, i.closed_at, i.detail, c.name AS collector
+      FROM incidents i JOIN collectors c ON c.id = i.collector_id
+      ORDER BY i.id DESC LIMIT 10`).all();
+    const runs = db.prepare(`
+      SELECT r.id, r.status, r.rows_in, r.rows_valid, r.finished_at, c.name AS collector
+      FROM runs r JOIN collectors c ON c.id = r.collector_id
+      ORDER BY r.id DESC LIMIT 10`).all();
+    return { events, incidents, runs, ts: new Date().toISOString() };
   });
 
   await app.listen({ port: WORKER_PORT, host: '0.0.0.0' });
