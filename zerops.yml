@@ -10,9 +10,9 @@ zerops:
         - apps/web/node_modules
         - apps/web/.next/cache
       deployFiles:
-        - apps/web/.next/standalone/~
-        - apps/web/~.next/static
-        - apps/web/~public
+        - apps/web/.next/standalone
+        - apps/web/.next/static
+        - apps/web/public
     run:
       base: nodejs@22
       os: ubuntu
@@ -23,7 +23,7 @@ zerops:
         NODE_ENV: production
         PORT: "3000"
         HOSTNAME: 0.0.0.0
-      start: node apps/web/server.js
+      start: node apps/web/.next/standalone/apps/web/server.js
       healthCheck:
         httpGet:
           port: 3000
@@ -43,7 +43,7 @@ zerops:
       cache:
         - apps/worker/node_modules
       deployFiles:
-        - apps/worker/~dist
+        - apps/worker/dist
         - apps/worker/package.json
         - apps/worker/package-lock.json
     run:
@@ -53,7 +53,7 @@ zerops:
         - port: 8787
           httpSupport: true
       initCommands:
-        - npm install --omit=dev
+        - cd apps/worker && npm install --omit=dev
         - mkdir -p data
       envVariables:
         BRIGHT_DATA_API_KEY: ${BRIGHT_DATA_API_KEY}
@@ -67,7 +67,7 @@ zerops:
         SCHEDULER: "on"
         CHAOS_TEST_ENABLED: "on"
         WORKER_PORT: "8787"
-      start: node dist/index.js
+      start: node apps/worker/dist/index.js
       healthCheck:
         httpGet:
           port: 8787
