@@ -12,7 +12,7 @@ const REPO_PATH = process.env.HYDRA_REPO_PATH ?? 'D:/Scrape-Verse/hydra';
 // Cloud mode: commit via GitHub REST API (token in env) — Vercel redeploys the store on push.
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? '';
 const OWNER = process.env.HYDRA_REPO_OWNER ?? 'anikdascodes';
-const REPO = process.env.HYDRA_REPO_NAME ?? 'hydra';
+const REPO = process.env.HYDRA_REPO_NAME ?? 'Scrape-Verse';
 const BRANCH = process.env.HYDRA_REPO_BRANCH ?? 'main';
 const INDEX_PATH = 'chaos-store/index.html';
 const LAYOUT_COUNT = 3;
