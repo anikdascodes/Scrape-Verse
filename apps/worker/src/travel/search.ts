@@ -6,6 +6,9 @@ import { bus } from '../events/bus.js';
 export interface CitySearchResult {
   city: string;
   slug: string;
+  collecting: boolean;
+  cached: boolean;
+  eta_seconds: number;
   platforms: { platform: string; url: string; status: string; rows: number; error?: string }[];
   matched: number;
   exclusive: number;
@@ -41,7 +44,9 @@ export function isValidCity(input: string): boolean {
   return slugify(c).length >= 2;
 }
 
-/** Returns null if this looks like a Goan area (already collected) — those filter client-side. */
+const activeSearches = new Map<string, number>(); // slug -> epoch ms (in-flight guard, 3 min)
+
+/** Kick a live city scrape in the background and return instantly — the frontend polls overhead until rows land. */
 export async function searchCity(cityInput: string): Promise<CitySearchResult> {
   const canonical = canonicalCity(cityInput);
   const slug = slugify(canonical);
@@ -50,21 +55,43 @@ export async function searchCity(cityInput: string): Promise<CitySearchResult> {
     name: string; base_url: string; city: string | null;
   }[];
 
-  const platforms: CitySearchResult['platforms'] = [];
-  bus.emitEvent({ type: 'chaos', collector: 'travel', payload: { step: 'city_search', city: slug } });
+  const now = Date.now();
+  const last = activeSearches.get(slug) ?? 0;
+  const alreadyRunning = now - last < 3 * 60_000;
 
-  for (const col of cols) {
-    // Goa-pinned collectors only participate in Goa searches
-    if (col.city === 'Goa' && slug !== 'goa') continue;
-    const url = (CITY_URLS[col.name] ?? (() => col.base_url))(slug);
-    try {
-      const res = await ingestCollector(col.name, 'city_search', { targetUrl: url, city: canonical });
-      platforms.push({ platform: col.name, url, status: res.status, rows: res.rowsValid });
-    } catch (e) {
-      platforms.push({ platform: col.name, url, status: 'error', rows: 0, error: String(e) });
-    }
+  const participants = cols.filter((c) => !(c.city === 'Goa' && slug !== 'goa'));
+
+  if (!alreadyRunning) {
+    activeSearches.set(slug, now);
+    void (async () => {
+      for (const col of participants) {
+        const url = (CITY_URLS[col.name] ?? (() => col.base_url))(slug);
+        try {
+          await ingestCollector(col.name, 'city_search', { targetUrl: url, city: canonical });
+        } catch {
+          /* details logged by the ingester */
+        }
+      }
+    })();
   }
 
+  bus.emitEvent({ type: 'chaos', collector: 'travel', payload: { step: 'city_search', city: slug } });
+
   const offers = db.prepare(`SELECT COUNT(*) n FROM hotel_offers o JOIN collectors c ON c.id=o.collector_id WHERE c.vertical='travel' AND o.city=?`).get(canonical) as { n: number };
-  return { city: canonical, slug, platforms, matched: 0, exclusive: offers.n };
+
+  return {
+    city: canonical,
+    slug,
+    collecting: !alreadyRunning,
+    cached: offers.n > 0,
+    eta_seconds: 180,
+    platforms: participants.map((col) => ({
+      platform: col.name,
+      url: (CITY_URLS[col.name] ?? (() => col.base_url))(slug),
+      status: alreadyRunning ? 'in-flight' : 'collecting',
+      rows: 0,
+    })),
+    matched: 0,
+    exclusive: offers.n,
+  };
 }

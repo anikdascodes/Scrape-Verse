@@ -41,6 +41,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
   const [sort, setSort] = useState("price-asc");
   const [liveSearching, setLiveSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchNote, setSearchNote] = useState<string | null>(null);
 
   const allHotels: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = useMemo(() => {
     const list: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = [];
@@ -74,6 +75,12 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
     if (!t || liveSearching) return;
     setLiveSearching(true);
     setSearchError(null);
+    setSearchNote(null);
+    const apply = (fresh: TravelOverview) => {
+      setCity(t);
+      setQ("");
+      setData(fresh);
+    };
     try {
       const res = await fetch(`${WORKER_URL}/api/travel/search`, {
         method: "POST",
@@ -82,13 +89,25 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
       });
       const summary = await res.json();
       if (!res.ok) throw new Error(summary.error ?? "search failed");
-      const fresh = await getJSON<TravelOverview>(`/api/travel/overview?city=${encodeURIComponent(t)}`);
-      if (fresh) {
-        setCity(t);
-        setQ("");
-        setData(fresh);
+      setSearchNote(`Collecting "${t}" live — Bright Data snapshots in flight (~90s).`);
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => setTimeout(r, 8000));
+        const fresh = await getJSON<TravelOverview>(`/api/travel/overview?city=${encodeURIComponent(t)}`);
+        if (fresh && fresh.groups.length + fresh.exclusive.length > 0) {
+          setSearchNote(null);
+          apply(fresh);
+          return;
+        }
+      }
+      const last = await getJSON<TravelOverview>(`/api/travel/overview?city=${encodeURIComponent(t)}`);
+      setSearchNote(null);
+      if (last && last.groups.length + last.exclusive.length > 0) {
+        apply(last);
+      } else {
+        setSearchError(`No rooms indexed for ${t} yet — give it a minute and search again.`);
       }
     } catch (e) {
+      setSearchNote(null);
       setSearchError(e instanceof Error ? e.message : String(e));
     } finally {
       setLiveSearching(false);
@@ -199,6 +218,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
                 Baga area
               </button>
               <span>· or type any Indian city above and press Enter</span>
+              {searchNote && <span style={{ color: "var(--green)" }}>· {searchNote}</span>}
               {searchError && <span style={{ color: "var(--destructive)" }}>· {searchError}</span>}
             </div>
           </div>
