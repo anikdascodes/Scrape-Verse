@@ -4,8 +4,6 @@ zerops:
     build:
       base: nodejs@22
       os: ubuntu
-      envVariables:
-        NEXT_PUBLIC_WORKER_URL: ${NEXT_PUBLIC_WORKER_URL}
       buildCommands:
         - cd apps/web && npm install && npm run build
       cache:
@@ -30,10 +28,10 @@ zerops:
         httpGet:
           port: 3000
           path: /
-        failureTimeout: 60
-        disconnectTimeout: 30
-        recoveryTimeout: 30
-        execPeriod: 15
+        failureTimeout: "60s"
+        disconnectTimeout: "30s"
+        recoveryTimeout: "30s"
+        execPeriod: "15s"
 
   # ── Worker pipeline (Fastify on :8787, SQLite) ──
   - setup: worker
@@ -74,7 +72,7 @@ zerops:
         httpGet:
           port: 8787
           path: /api/health
-        failureTimeout: 60
-        disconnectTimeout: 30
-        recoveryTimeout: 60
-        execPeriod: 15
+        failureTimeout: "60s"
+        disconnectTimeout: "30s"
+        recoveryTimeout: "60s"
+        execPeriod: "15s"
