@@ -39,7 +39,7 @@ zerops:
       base: nodejs@22
       os: ubuntu
       buildCommands:
-        - cd apps/worker && npm install && npx tsc && cp src/db/schema.sql dist/db/schema.sql
+        - cd apps/worker && npm install && npx tsc
       cache:
         - apps/worker/node_modules
       deployFiles:
