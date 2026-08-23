@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { getDb } from './db/index.js';
+import { registerCollectors } from './collector-registry.js';
 import { buildServer } from './api/server.js';
 import { runCollector } from './watchdog/controller.js';
 import { redesignStore } from './chaos/redesign.js';
@@ -7,6 +8,7 @@ import { recordBalance } from './telemetry/credits.js';
 import { queueHeal } from './heal/orchestrator.js';
 
 const db = getDb();
+registerCollectors();
 const SCHED_ENABLED = process.env.SCHEDULER !== 'off';
 const CHAOS_TEST = process.env.CHAOS_TEST_ENABLED === 'on';
 
