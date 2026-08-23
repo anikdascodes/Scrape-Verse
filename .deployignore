@@ -1,9 +1,7 @@
 /node_modules
 /.git
 /data
-**/node_modules
-!**/.next/standalone/node_modules
-!**/.next/standalone/node_modules/**
+/node_modules/
 **/*.db
 **/*.db-wal
 **/*.db-shm
