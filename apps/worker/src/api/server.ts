@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { getDb } from '../db/index.js';
 import { runCollector } from '../watchdog/controller.js';
-import { redesignStore } from '../chaos/redesign.js';
+import { chaosTest } from '../chaos/chaos-runner.js';
 import { searchCity, isValidCity } from '../travel/search.js';
 import { bus, type HydraEvent } from '../events/bus.js';
 import { WORKER_PORT } from '../config.js';
@@ -180,12 +180,11 @@ export async function buildServer() {
   });
 
   app.post('/api/chaos/redesign', async (req, reply) => {
-    try {
-      const result = await redesignStore();
-      return result;
-    } catch (e) {
-      return reply.code(500).send({ error: e instanceof Error ? e.message : String(e) });
-    }
+    // Kick the full break→heal loop in the background and answer immediately;
+    // progress surfaces on the SSE feed. Refuses overlapping runs.
+    const gate = chaosTest();
+    if (!gate.started) return reply.code(409).send({ error: gate.skipReason ?? 'chaos cycle busy' });
+    return { started: true };
   });
 
   // SSE stream of all events (Chaos Lab live feed)

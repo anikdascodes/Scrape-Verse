@@ -3,7 +3,7 @@ import { getDb } from './db/index.js';
 import { registerCollectors } from './collector-registry.js';
 import { buildServer } from './api/server.js';
 import { runCollector } from './watchdog/controller.js';
-import { redesignStore } from './chaos/redesign.js';
+import { chaosTest } from './chaos/chaos-runner.js';
 import { recordBalance } from './telemetry/credits.js';
 import { queueHeal } from './heal/orchestrator.js';
 
@@ -34,19 +34,7 @@ async function runAll(kind: 'real' | 'chaos', by = 'scheduler') {
 
 // Chaos test: redesign the store, then run the collector — which will break and self-heal.
 // Produces a fresh receipt each cycle. Interval configurable via CHAOS_TEST_CRON (default every 6h).
-async function chaosTest() {
-  try {
-    console.log('[chaos-test] redesigning store…');
-    const { version } = await redesignStore();
-    console.log(`[chaos-test] store now v${version}. waiting for Vercel redeploy…`);
-    await new Promise((r) => setTimeout(r, 45_000)); // Vercel redeploy
-    console.log('[chaos-test] triggering chaos collector…');
-    const { res, incidentId } = await runCollector('chaos', 'chaos_test');
-    console.log(`[chaos-test] run=${res.status} rows=${res.rowsValid} incident=${incidentId}`);
-  } catch (e) {
-    console.error('[chaos-test] failed:', e instanceof Error ? e.message : e);
-  }
-}
+// (Moved to src/chaos/chaos-runner.ts so the API can trigger it on demand.)
 
 const app = await buildServer();
 
