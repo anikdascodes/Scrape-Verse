@@ -39,14 +39,13 @@ zerops:
       base: nodejs@22
       os: ubuntu
       buildCommands:
-        - cd apps/worker && npm install
+        - cd apps/worker && npm install && npx tsc
       cache:
         - apps/worker/node_modules
       deployFiles:
-        - apps/worker/src/~src
+        - apps/worker/dist/~dist
         - apps/worker/package.json
         - apps/worker/package-lock.json
-        - apps/worker/tsconfig.json
     run:
       base: nodejs@22
       os: ubuntu
@@ -54,7 +53,8 @@ zerops:
         - port: 8787
           httpSupport: true
       initCommands:
-        - npm install
+        - npm install --omit=dev
+        - mkdir -p data
       envVariables:
         BRIGHT_DATA_API_KEY: ${BRIGHT_DATA_API_KEY}
         COLLECTOR_NEWEGG: ${COLLECTOR_NEWEGG}
@@ -67,7 +67,7 @@ zerops:
         SCHEDULER: "on"
         CHAOS_TEST_ENABLED: "on"
         WORKER_PORT: "8787"
-      start: npx tsx src/index.ts
+      start: node dist/index.js
       healthCheck:
         httpGet:
           port: 8787
