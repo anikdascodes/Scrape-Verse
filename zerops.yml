@@ -11,8 +11,8 @@ zerops:
         - apps/web/.next/cache
       deployFiles:
         - apps/web/.next/standalone/~
-        - apps/web/.next/static/~.next/static
-        - apps/web/public/~public
+        - apps/web/~.next/static
+        - apps/web/~public
     run:
       base: nodejs@22
       os: ubuntu
@@ -43,7 +43,7 @@ zerops:
       cache:
         - apps/worker/node_modules
       deployFiles:
-        - apps/worker/dist/~dist
+        - apps/worker/~dist
         - apps/worker/package.json
         - apps/worker/package-lock.json
     run:
