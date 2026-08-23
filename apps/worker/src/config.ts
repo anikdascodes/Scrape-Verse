@@ -25,9 +25,20 @@ function loadRootEnv() {
 }
 loadRootEnv();
 
-/** Canonical Bright Data API token. Accepts BRIGHT_DATA_API_KEY, Bright_Data_API or BD_API_KEY. */
-export const API_TOKEN: string =
-  process.env.BRIGHT_DATA_API_KEY ?? process.env.Bright_Data_API ?? process.env.BD_API_KEY ?? '';
+/** First env source with a real value wins. Rejects unresolved ${...} placeholders. */
+function pickValid(...vals: (string | undefined)[]): string {
+  for (const v of vals) {
+    if (typeof v === 'string' && v.trim().length > 12 && !v.includes('${')) return v.trim();
+  }
+  return '';
+}
+
+/** Canonical Bright Data API token. */
+export const API_TOKEN: string = pickValid(
+  process.env.Bright_Data_API,
+  process.env.BD_API_KEY,
+  process.env.BRIGHT_DATA_API_KEY,
+);
 
 export const API_BASE = 'https://api.brightdata.com';
 export const DB_PATH = process.env.HYDRA_DB_PATH ?? './data/hydra.db';
