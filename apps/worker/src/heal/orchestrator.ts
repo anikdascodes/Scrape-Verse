@@ -16,6 +16,7 @@ function log(incidentId: number, step: string, status: 'ok' | 'fail' | 'info', d
 
 /** Run the full self-heal loop for one incident. Idempotent-ish; serialized by queue. */
 export async function healIncident(incidentId: number): Promise<'closed' | 'failed'> {
+  console.log(`[heal] start incident ${incidentId}`);
   const db = getDb();
   const inc = db.prepare(`SELECT * FROM incidents WHERE id=?`).get(incidentId) as any;
   const col = db.prepare(`SELECT * FROM collectors WHERE id=?`).get(inc.collector_id) as CollectorRow;
@@ -82,7 +83,8 @@ export async function healIncident(incidentId: number): Promise<'closed' | 'fail
       } else {
         // human gate: leave incident in healing + awaiting_approval for a human
         log(incidentId, 'awaiting_approval', 'info', { needsHuman: true });
-        db.prepare(`UPDATE incidents SET status='healing' WHERE id=?`).run(incidentId);
+  db.prepare(`UPDATE incidents SET status='healing' WHERE id=?`).run(incidentId);
+  console.log(`[heal] incident ${incidentId} -> healing`);
         return 'failed'; // treat as not-auto-closed (human will act)
       }
     } else if (outcome.kind === 'done') {
@@ -115,6 +117,7 @@ export async function healIncident(incidentId: number): Promise<'closed' | 'fail
 
 /** Enqueue a heal job on the serial queue; fire-and-forget. */
 export function queueHeal(incidentId: number): void {
+  console.log(`[heal-q] queuing incident ${incidentId}`);
   enqueue(`heal:${incidentId}`, () => healIncident(incidentId)).catch((e) => {
     console.error(`heal ${incidentId} error:`, e instanceof Error ? e.message : e);
   });
