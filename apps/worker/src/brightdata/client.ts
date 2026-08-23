@@ -14,6 +14,7 @@ async function req<T>(method: string, path: string, body?: unknown, tries = 3): 
         method,
         headers: headers(),
         body: body === undefined ? undefined : JSON.stringify(body),
+        signal: AbortSignal.timeout(45_000),
       });
       const text = await res.text();
       let data: unknown;
