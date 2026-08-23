@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, MapPin, Calendar, Users, Star, ExternalLink, SlidersHorizontal, ArrowUpDown, BedDouble } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -42,6 +42,23 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
   const [liveSearching, setLiveSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchNote, setSearchNote] = useState<string | null>(null);
+
+  // While data is stale (e.g. right after a worker boot), poll until rows land.
+  useEffect(() => {
+    if (!data.stale) return;
+    let tries = 0;
+    const t = setInterval(async () => {
+      if (liveSearching) return;
+      const fresh = await getJSON<TravelOverview>(`/api/travel/overview?city=${encodeURIComponent(data.city)}`);
+      if (fresh && fresh.groups.length + fresh.exclusive.length > 0) {
+        setData(fresh);
+        clearInterval(t);
+        return;
+      }
+      if (++tries >= 24) clearInterval(t);
+    }, 15000);
+    return () => clearInterval(t);
+  }, [data.stale, data.city, liveSearching]);
 
   const allHotels: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = useMemo(() => {
     const list: (TravelOffer & { isExclusive: boolean; matchId?: string })[] = [];
@@ -132,18 +149,6 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
 
   const filteredExclusive = grouped.exclusive;
 
-  if (data.stale) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Hotels</h1>
-        <Card><CardContent className="py-16 text-center space-y-3">
-          <p className="font-medium">Warming up hotel data…</p>
-          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Collectors are running — this page will populate in a minute.</p>
-        </CardContent></Card>
-      </div>
-    );
-  }
-
   const platforms = ["treebo", "fabhotels", "oyo"];
 
   return (
@@ -154,8 +159,15 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
           <div className="px-5 py-4 flex items-center gap-2 border-b" style={{ borderColor: "var(--border)" }}>
             <Search className="h-5 w-5" style={{ color: "var(--primary)" }} />
             <h1 className="font-bold text-lg">Find your stay</h1>
-            <span className="ml-auto text-xs mono px-2 py-1 rounded-full" style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}>
-              {filtered.length} hotels · {data.city}
+            <span className="ml-auto flex items-center gap-2">
+              {data.stale && (
+                <span className="text-xs mono px-2 py-1 rounded-full" style={{ background: "rgba(217,119,6,0.12)", color: "var(--amber)" }}>
+                  warming up · auto-refreshing
+                </span>
+              )}
+              <span className="text-xs mono px-2 py-1 rounded-full" style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}>
+                {filtered.length} hotels · {data.city}
+              </span>
             </span>
           </div>
           <div className="px-4 md:px-5 pt-4 pb-4 space-y-3">
@@ -346,7 +358,7 @@ export default function TravelView({ data: initial }: { data: TravelOverview }) 
             </h2>
             {filteredExclusive.length === 0 ? (
               <Card><CardContent className="py-10 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
-                No hotels match these filters — try widening the budget.
+                {data.stale ? "Collectors are still warming up — this page is polling and will populate in a minute." : "No hotels match these filters — try widening the budget."}
               </CardContent></Card>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
