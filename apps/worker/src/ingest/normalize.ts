@@ -129,6 +129,9 @@ export function normalizeRow(row: RawRow, currency: string, priceHint: 'auto' | 
     if (dec && dec.length === 3) price = price * 1000;  // scraper ÷1000 (EUR "1.179,00" → 1.179)
     else if (dec && dec.length === 4) price = price * 100; // scraper ÷100 (USD "$1,309.99" → 13.0999)
   }
+  // Plausibility floor: scrapers occasionally parse shipping/promo cents as the
+  // item price ($7.70 GPU, $2.60 GPU…). Real cards in these catalogs are ≥$30.
+  if (price !== null && currency !== 'INR' && price > 0 && price < 30) price = null;
   return {
     gpu_model: extractGpuModel(name),
     product_name: name ? String(name).slice(0, 300) : null,
