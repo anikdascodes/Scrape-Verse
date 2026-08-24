@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS incidents (
   id            INTEGER PRIMARY KEY,
   collector_id  INTEGER NOT NULL REFERENCES collectors(id),
   run_id        INTEGER REFERENCES runs(id),
-  type          TEXT NOT NULL CHECK (type IN ('null_burst','row_drop','schema_drift','stale','empty')),
+  type          TEXT NOT NULL CHECK (type IN ('null_burst','row_drop','schema_drift','stale','empty','rendering')),
   severity      TEXT NOT NULL CHECK (severity IN ('low','high')),
   detail        TEXT,
   status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','healing','verifying','closed','failed','dismissed')),

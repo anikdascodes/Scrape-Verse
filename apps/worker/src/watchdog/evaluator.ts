@@ -3,10 +3,12 @@ import { bus } from '../events/bus.js';
 import { ingestCollector, type IngestResult } from '../ingest/runner.js';
 
 export interface ValidatorVerdict {
-  type: 'empty' | 'null_burst' | 'row_drop' | 'schema_drift' | 'stale';
+  type: 'empty' | 'null_burst' | 'row_drop' | 'schema_drift' | 'stale' | 'rendering';
   severity: 'low' | 'high';
   detail: string;
 }
+
+export const TRANSIENT_TYPES: ValidatorVerdict['type'][] = ['rendering'];
 
 const NULL_BURST_THRESHOLD = 0.30;
 const ROW_DROP_FRACTION = 0.5;
@@ -16,6 +18,15 @@ export function validateRun(collectorId: number, res: IngestResult): ValidatorVe
   const db = getDb();
 
   if (res.status === 'failed' || res.rowsValid === 0) {
+    // Rows were extracted but prices/fields are missing on ALL of them.
+    // Classic bot-detection/page-variant symptom — an AI template refactor
+    // cannot fix it. Treat as transient rendering flake, not a site redesign.
+    if (res.rowsIn > 0) {
+      return {
+        type: 'rendering', severity: 'high',
+        detail: `page rendered ${res.rowsIn} rows but 0 carried valid prices (${res.error ?? 'no error'})`,
+      };
+    }
     return { type: 'empty', severity: 'high', detail: res.error ?? 'no valid rows' };
   }
   if (res.nullRate > NULL_BURST_THRESHOLD) {

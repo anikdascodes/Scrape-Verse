@@ -31,10 +31,28 @@ export interface IngestResult {
 }
 
 /**
+ * Global collection serialization: Bright Data collections degrade under
+ * concurrent triggers (bot-detection page variants, rate limits). Every
+ * ingest waits its turn — cron bursts, city searches, chaos cycles and heal
+ * verifies never overlap.
+ */
+let collectChain: Promise<unknown> = Promise.resolve();
+let queueLength = 0;
+
+/**
  * Full ingest for one collector: trigger → poll → normalize → persist run + prices.
  * Returns stats for the watchdog. Never throws: failures are captured as status='failed'.
  */
-export async function ingestCollector(collectorName: string, triggeredBy = 'scheduler', opts?: { targetUrl?: string; city?: string }): Promise<IngestResult> {
+export function ingestCollector(collectorName: string, triggeredBy = 'scheduler', opts?: { targetUrl?: string; city?: string }): Promise<IngestResult> {
+  queueLength++;
+  const run = collectChain
+    .catch(() => undefined)
+    .then(() => ingestCollectorInner(collectorName, triggeredBy, opts));
+  collectChain = run.catch(() => undefined);
+  return run;
+}
+
+async function ingestCollectorInner(collectorName: string, triggeredBy = 'scheduler', opts?: { targetUrl?: string; city?: string }): Promise<IngestResult> {
   const db = getDb();
   const col = db.prepare('SELECT * FROM collectors WHERE name = ?').get(collectorName) as CollectorRow | undefined;
 

@@ -41,6 +41,59 @@ export async function healIncident(incidentId: number): Promise<'closed' | 'fail
   bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'diagnosed' } });
   log(incidentId, 'diagnosed', 'info', { type: inc.type, detail: inc.detail });
 
+  // ── Gate 0: cooldown for collectors whose recent heals could not fix the break.
+  //    Repeated AI refactors on an unfixable collector = churn + failed-job emails.
+  const recentFailed = db.prepare(`
+    SELECT COUNT(*) n FROM incidents
+    WHERE collector_id=? AND status='failed'
+      AND opened_at >= datetime('now','-6 hours')
+  `).get(col.id) as { n: number };
+  if (recentFailed.n >= 2) {
+    console.log(`[heal] ${incidentId} ${col.name} in cooldown (${recentFailed.n} failed heals in 6h) — leaving open, no AI job`);
+    log(incidentId, 'retry', 'info', { cooldown: true, failed_recent: recentFailed.n });
+    db.prepare(`UPDATE incidents SET status='open', closed_at=NULL WHERE id=?`).run(incidentId);
+    bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'cooldown', failedRecent: recentFailed.n } });
+    return 'failed';
+  }
+
+  // ── Gate 1: rendering flake? An AI refactor cannot fix bot-detection page
+  //    variants. Re-check once; only a confirmed extraction break may dispatch.
+  if (inc.type === 'rendering') {
+    db.prepare(`UPDATE incidents SET status='verifying' WHERE id=?`).run(incidentId);
+    console.log(`[heal] ${incidentId} ${col.name} rendering-flake — probing with a fresh run, no AI job`);
+    log(incidentId, 'rerun', 'info', { reason: 'rendering flake probe' });
+    const probe = await ingestCollector(col.name, 'flake_probe');
+    if (probe.status !== 'failed' && probe.rowsValid > 0) {
+      db.prepare(`UPDATE incidents SET status='closed', closed_at=datetime('now') WHERE id=?`).run(incidentId);
+      log(incidentId, 'verified_ok', 'ok', { reason: 'flake probe recovered', rows: probe.rowsValid });
+      log(incidentId, 'closed', 'ok', {});
+      console.log(`[heal] incident ${incidentId} CLOSED — flake probe recovered (${probe.rowsValid} rows)`);
+      bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'verified_ok', flake: true } });
+      return 'closed';
+    }
+    db.prepare(`UPDATE incidents SET status='open', closed_at=NULL WHERE id=?`).run(incidentId);
+    log(incidentId, 'retry', 'info', { reason: 'flake probe still failing — deferred, no AI job' });
+    console.log(`[heal] ${incidentId} ${col.name} flake probe still failing — deferred (no AI job)`);
+    return 'failed';
+  }
+
+  // ── Gate 2: transient check before any break is deemed real. One fresh run;
+  //    a pass proves the break was momentary (e.g. cron-burst rate limits) and
+  //    spares Bright Data a pointless refactor (the source of failed-job emails).
+  db.prepare(`UPDATE incidents SET status='verifying' WHERE id=?`).run(incidentId);
+  console.log(`[heal] ${incidentId} ${col.name} pre-heal transient check`);
+  log(incidentId, 'rerun', 'info', { reason: 'transient check' });
+  const checkRun = await ingestCollector(col.name, 'transient_check');
+  if (checkRun.status !== 'failed' && checkRun.rowsValid > 0) {
+    db.prepare(`UPDATE incidents SET status='closed', closed_at=datetime('now') WHERE id=?`).run(incidentId);
+    log(incidentId, 'verified_ok', 'ok', { reason: 'transient — no AI job dispatched', rows: checkRun.rowsValid });
+    log(incidentId, 'closed', 'ok', {});
+    console.log(`[heal] incident ${incidentId} CLOSED — transient break (recovery run: ${checkRun.rowsValid} rows)`);
+    bus.emitEvent({ type: 'heal', collector: col.name, payload: { incidentId, step: 'verified_ok', transient: true } });
+    return 'closed';
+  }
+  console.log(`[heal] ${incidentId} ${col.name} confirmed broken — dispatching AI refactor`);
+
   const MAX_ATTEMPTS = 2;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const prompt = healPrompt(inc.type, inc.detail);
