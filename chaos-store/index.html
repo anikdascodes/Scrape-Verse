@@ -10,139 +10,141 @@
   h1 { margin: 0; font-size: 22px; }
   main { max-width: 980px; margin: 0 auto; padding: 24px; }
   footer { padding: 24px; text-align: center; color: #7d8590; font-size: 13px; }
-  .items { display:flex; flex-wrap:wrap; gap:12px; }
-    .item { flex:1 1 260px; background:#0f1419; border-radius:8px; padding:14px; border-left:3px solid #f78166; }
-    .item .nm { font-weight:600; margin:0 0 8px; }
-    .item .cost .val { color:#f78166; font-size:19px; font-weight:800; }
-    .item .stk { color:#7d8590; font-size:12px; text-transform:uppercase; margin:4px 0; }
-    .lnk { color:#58a6ff; font-size:13px; }
+  table.catalog { width:100%; border-collapse:collapse; }
+    table.catalog th { text-align:left; color:#7d8590; font-size:12px; text-transform:uppercase; padding:8px; border-bottom:1px solid #21262d; }
+    table.catalog td { padding:10px 8px; border-bottom:1px solid #161b22; }
+    td.p { color:#3fb950; font-weight:700; white-space:nowrap; }
+    td.s { font-size:12px; text-transform:uppercase; color:#7d8590; }
 </style>
 </head>
 <body>
-<header><h1>Voltmart — GPU Megastore</h1><p>Fictional store for self-healing demos. Layout v2</p></header>
+<header><h1>Voltmart — GPU Megastore</h1><p>Fictional store for self-healing demos. Layout v3</p></header>
 <main>
-  <div class="items">
-      <article class="item" data-id="1">
-        <p class="nm">ASUS ROG Strix RTX 5090 OC Edition</p>
-        <p class="cost"><span class="val">$2549.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-1">details</a>
-      </article>
-      <article class="item" data-id="2">
-        <p class="nm">MSI Gaming RTX 5090 Trio</p>
-        <p class="cost"><span class="val">$2446.98</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-2">details</a>
-      </article>
-      <article class="item" data-id="3">
-        <p class="nm">Gigabyte Aorus RTX 5080 Master</p>
-        <p class="cost"><span class="val">$1172.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-3">details</a>
-      </article>
-      <article class="item" data-id="4">
-        <p class="nm">ASUS TUF RTX 5080</p>
-        <p class="cost"><span class="val">$1120.98</span></p>
-        <p class="stk">out of stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-4">details</a>
-      </article>
-      <article class="item" data-id="5">
-        <p class="nm">MSI Ventus RTX 5070 Ti</p>
-        <p class="cost"><span class="val">$815.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-5">details</a>
-      </article>
-      <article class="item" data-id="6">
-        <p class="nm">EVGA RTX 5070 XC</p>
-        <p class="cost"><span class="val">$662.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-6">details</a>
-      </article>
-      <article class="item" data-id="7">
-        <p class="nm">Zotac Twin Edge RTX 5070</p>
-        <p class="cost"><span class="val">$641.58</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-7">details</a>
-      </article>
-      <article class="item" data-id="8">
-        <p class="nm">Palit Gaming Pro RTX 5060 Ti</p>
-        <p class="cost"><span class="val">$448.79</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-8">details</a>
-      </article>
-      <article class="item" data-id="9">
-        <p class="nm">Gigabyte Eagle RTX 5060</p>
-        <p class="cost"><span class="val">$336.59</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-9">details</a>
-      </article>
-      <article class="item" data-id="10">
-        <p class="nm">NVIDIA RTX 5050 Founders</p>
-        <p class="cost"><span class="val">$265.19</span></p>
-        <p class="stk">pre-order</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-10">details</a>
-      </article>
-      <article class="item" data-id="11">
-        <p class="nm">Sapphire Pulse RX 9070 XT</p>
-        <p class="cost"><span class="val">$662.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-11">details</a>
-      </article>
-      <article class="item" data-id="12">
-        <p class="nm">ASRock Taichi RX 9070</p>
-        <p class="cost"><span class="val">$621.18</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-12">details</a>
-      </article>
-      <article class="item" data-id="13">
-        <p class="nm">PowerColor Hellhound RX 9070</p>
-        <p class="cost"><span class="val">$611.99</span></p>
-        <p class="stk">out of stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-13">details</a>
-      </article>
-      <article class="item" data-id="14">
-        <p class="nm">XFX Merc RX 9060 XT</p>
-        <p class="cost"><span class="val">$387.59</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-14">details</a>
-      </article>
-      <article class="item" data-id="15">
-        <p class="nm">Sapphire Nitro RX 7900 XTX</p>
-        <p class="cost"><span class="val">$1018.98</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-15">details</a>
-      </article>
-      <article class="item" data-id="16">
-        <p class="nm">ASRock Challenger RX 7900 XT</p>
-        <p class="cost"><span class="val">$764.99</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-16">details</a>
-      </article>
-      <article class="item" data-id="17">
-        <p class="nm">Gigabyte RTX 4060 Eagle</p>
-        <p class="cost"><span class="val">$316.19</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-17">details</a>
-      </article>
-      <article class="item" data-id="18">
-        <p class="nm">MSI RTX 4060 Ti Ventus</p>
-        <p class="cost"><span class="val">$437.58</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-18">details</a>
-      </article>
-      <article class="item" data-id="19">
-        <p class="nm">Intel Arc B580 Limited</p>
-        <p class="cost"><span class="val">$326.39</span></p>
-        <p class="stk">in stock</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-19">details</a>
-      </article>
-      <article class="item" data-id="20">
-        <p class="nm">Intel Arc B570</p>
-        <p class="cost"><span class="val">$254.99</span></p>
-        <p class="stk">pre-order</p>
-        <a class="lnk" href="https://voltmart.example/p/gpu-20">details</a>
-      </article>
-  </div>
+  <table class="catalog">
+    <thead><tr><th>Price</th><th>Product</th><th>Stock</th><th>Ref</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="p">USD 2599.99</td>
+        <td class="n">ASUS ROG Strix RTX 5090 OC Edition</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-1">#1</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 2494.96</td>
+        <td class="n">MSI Gaming RTX 5090 Trio</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-2">#2</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 1195.99</td>
+        <td class="n">Gigabyte Aorus RTX 5080 Master</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-3">#3</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 1142.96</td>
+        <td class="n">ASUS TUF RTX 5080</td>
+        <td class="s">out of stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-4">#4</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 831.99</td>
+        <td class="n">MSI Ventus RTX 5070 Ti</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-5">#5</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 675.99</td>
+        <td class="n">EVGA RTX 5070 XC</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-6">#6</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 654.16</td>
+        <td class="n">Zotac Twin Edge RTX 5070</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-7">#7</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 457.59</td>
+        <td class="n">Palit Gaming Pro RTX 5060 Ti</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-8">#8</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 343.19</td>
+        <td class="n">Gigabyte Eagle RTX 5060</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-9">#9</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 270.39</td>
+        <td class="n">NVIDIA RTX 5050 Founders</td>
+        <td class="s">pre-order</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-10">#10</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 675.99</td>
+        <td class="n">Sapphire Pulse RX 9070 XT</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-11">#11</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 633.36</td>
+        <td class="n">ASRock Taichi RX 9070</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-12">#12</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 623.99</td>
+        <td class="n">PowerColor Hellhound RX 9070</td>
+        <td class="s">out of stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-13">#13</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 395.19</td>
+        <td class="n">XFX Merc RX 9060 XT</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-14">#14</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 1038.96</td>
+        <td class="n">Sapphire Nitro RX 7900 XTX</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-15">#15</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 779.99</td>
+        <td class="n">ASRock Challenger RX 7900 XT</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-16">#16</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 322.39</td>
+        <td class="n">Gigabyte RTX 4060 Eagle</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-17">#17</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 446.16</td>
+        <td class="n">MSI RTX 4060 Ti Ventus</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-18">#18</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 332.79</td>
+        <td class="n">Intel Arc B580 Limited</td>
+        <td class="s">in stock</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-19">#19</a></td>
+      </tr>
+      <tr>
+        <td class="p">USD 259.99</td>
+        <td class="n">Intel Arc B570</td>
+        <td class="s">pre-order</td>
+        <td class="u"><a href="https://voltmart.example/p/gpu-20">#20</a></td>
+      </tr>
+    </tbody>
+  </table>
 </main>
 <footer>Voltmart demo store · not a real shop · part of the HYDRA project</footer>
 </body>
